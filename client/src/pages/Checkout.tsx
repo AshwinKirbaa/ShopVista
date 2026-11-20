@@ -132,15 +132,18 @@ export const Checkout: React.FC = () => {
         return;
       }
 
-      // Check if using placeholder/test key or real Razorpay merchant key
-      const isPlaceholderKey =
+      // In development or when using test/sandbox environment, always use the built-in
+      // interactive Razorpay UPI & Cards Sandbox modal to guarantee a 100% reliable test experience
+      const isTestEnv =
         !orderData.keyId ||
         orderData.keyId === 'rzp_test_placeholder' ||
-        orderData.razorpayOrderId?.startsWith('order_') ||
-        orderData.razorpayOrderId?.startsWith('rzp_mock_');
+        orderData.keyId.startsWith('rzp_test_') ||
+        orderData.razorpayOrderId?.startsWith('rzp_mock_') ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
 
-      if (isPlaceholderKey) {
-        // Open the Razorpay UPI & Cards Sandbox modal
+      if (isTestEnv) {
+        // Directly open the Razorpay UPI & Cards Sandbox modal
         setActiveTestModal({
           isOpen: true,
           orderNumber: orderData.orderNumber,
