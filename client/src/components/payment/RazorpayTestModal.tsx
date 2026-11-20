@@ -95,7 +95,7 @@ export const RazorpayTestModal: React.FC<RazorpayTestModalProps> = ({
                   Test Mode
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">brewns® Coffee House</p>
+              <p className="text-[11px] text-slate-400">ShopVista Online Store</p>
             </div>
           </div>
 

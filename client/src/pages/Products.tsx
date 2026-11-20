@@ -89,13 +89,13 @@ export const Products: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-8 mb-8 border-b border-[#ded8cb] gap-4">
         <div>
           <span className="text-xs font-mono-code tracking-widest text-[#7a6a58] uppercase">
-            // brewns® SELECTION
+            // shopvista® SELECTION
           </span>
           <h1 className="font-syne text-4xl sm:text-5xl font-extrabold uppercase tracking-tight text-[#120a06] mt-1">
-            {search ? `SEARCH: "${search}"` : 'FULL MENU & BEANS'}
+            {search ? `SEARCH: "${search}"` : 'FULL HARDWARE CATALOG'}
           </h1>
           <p className="font-mono-code text-xs text-[#7a6a58] uppercase tracking-wider mt-1.5">
-            Showing {products.length} of {totalCount} freshly roasted & brewed specialties
+            Showing {products.length} of {totalCount} authentic high-performance items
           </p>
         </div>
 

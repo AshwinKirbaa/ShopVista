@@ -37,10 +37,10 @@ export const Cart: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-mono-code">
       <div className="mb-8 border-b border-[#ded8cb] pb-6">
         <span className="text-xs text-[#7a6a58] uppercase tracking-widest">
-          // ORDER AHEAD BAG
+          // SHOPPING BAG
         </span>
         <h1 className="font-syne text-4xl font-extrabold uppercase tracking-tight text-[#120a06] mt-1">
-          YOUR COFFEE BAG ({itemCount})
+          YOUR BAG ({itemCount})
         </h1>
       </div>
 
