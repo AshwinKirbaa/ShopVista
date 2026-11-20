@@ -34,14 +34,19 @@ export const Cart: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-8">
-        Shopping Cart ({itemCount} {itemCount === 1 ? 'item' : 'items'})
-      </h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-mono-code">
+      <div className="mb-8 border-b border-[#ded8cb] pb-6">
+        <span className="text-xs text-[#7a6a58] uppercase tracking-widest">
+          // ORDER AHEAD BAG
+        </span>
+        <h1 className="font-syne text-4xl font-extrabold uppercase tracking-tight text-[#120a06] mt-1">
+          YOUR COFFEE BAG ({itemCount})
+        </h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         {/* Cart Items List */}
-        <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200/90 shadow-xs divide-y divide-slate-100 p-6">
+        <div className="lg:col-span-8 bg-white rounded-2xl border border-[#ded8cb] shadow-xs divide-y divide-[#ece8de] p-6">
           {cart.items.map((item) => (
             <div key={item.id} className="py-6 first:pt-0 last:pb-0 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
               {/* Product Thumbnail */}

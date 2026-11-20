@@ -47,23 +47,23 @@ export const Login: React.FC = () => {
       setValue('email', 'admin@ecommerce.com');
       setValue('password', 'Admin@123456');
     } else {
-      setValue('email', 'john@example.com');
+      setValue('email', 'ashwin@example.com');
       setValue('password', 'User@123456');
     }
   };
 
   return (
-    <div className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 space-y-6">
+    <div className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-mono-code">
+      <div className="w-full max-w-md bg-white rounded-3xl border border-[#ded8cb] shadow-xl p-8 space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex w-12 h-12 rounded-2xl bg-blue-600 text-white items-center justify-center shadow-md shadow-blue-500/25 mb-2">
-            <ShoppingBag className="w-6 h-6" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            Sign In to ShopVista
+          <Link to="/" className="inline-block font-syne text-3xl font-extrabold text-[#120a06] mb-1 lowercase">
+            brewns<span className="text-xs text-[#d4a373] align-super">®</span>
+          </Link>
+          <h2 className="text-xl font-extrabold text-[#120a06] font-syne uppercase tracking-tight">
+            Sign In to brewns®
           </h2>
-          <p className="text-xs text-slate-400">
-            Access your orders, saved addresses, and profile
+          <p className="text-xs text-[#7a6857]">
+            Access your orders, saved addresses, and morning rituals
           </p>
         </div>
 

@@ -84,25 +84,28 @@ export const Products: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-slate-200 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between pb-8 mb-8 border-b border-[#ded8cb] gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            {search ? `Search results for "${search}"` : 'Explore Products'}
+          <span className="text-xs font-mono-code tracking-widest text-[#7a6a58] uppercase">
+            // brewns® SELECTION
+          </span>
+          <h1 className="font-syne text-4xl sm:text-5xl font-extrabold uppercase tracking-tight text-[#120a06] mt-1">
+            {search ? `SEARCH: "${search}"` : 'FULL MENU & BEANS'}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Showing {products.length} of {totalCount} authentic items
+          <p className="font-mono-code text-xs text-[#7a6a58] uppercase tracking-wider mt-1.5">
+            Showing {products.length} of {totalCount} freshly roasted & brewed specialties
           </p>
         </div>
 
         {/* Mobile Filter Button */}
         <button
           onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-          className="lg:hidden flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 shadow-xs"
+          className="lg:hidden inline-flex items-center gap-2 px-4 py-2 border border-[#ded8cb] bg-white rounded-xl text-xs font-mono-code text-[#120a06] shadow-xs"
         >
-          <SlidersHorizontal className="w-4 h-4 text-blue-600" />
-          <span>{mobileFilterOpen ? 'Hide Filters' : 'Show Filters'}</span>
+          <SlidersHorizontal className="w-4 h-4" />
+          <span>{mobileFilterOpen ? 'Hide Filters' : 'Filters'}</span>
         </button>
       </div>
 

@@ -1,142 +1,113 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, ShieldCheck, Truck, RefreshCw, Headphones } from 'lucide-react';
+import { ShieldCheck, Coffee, Sparkles, MapPin, Clock } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-slate-900 text-slate-300 mt-20 pt-16 pb-12 border-t border-slate-800">
+    <footer className="bg-[#0e0704] text-[#f5f4ef] border-t border-[#26160d] pt-16 pb-12 overflow-hidden select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Value Propositions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-slate-800">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-slate-800 text-blue-400">
-              <Truck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Free Delivery</h4>
-              <p className="text-xs text-slate-400">On all orders above ₹500</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-slate-800 text-blue-400">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Secure Checkout</h4>
-              <p className="text-xs text-slate-400">Verified Razorpay 256-bit encryption</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-slate-800 text-blue-400">
-              <RefreshCw className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Instant Replacement</h4>
-              <p className="text-xs text-slate-400">7-day hassle free returns</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-slate-800 text-blue-400">
-              <Headphones className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">24/7 Dedicated Support</h4>
-              <p className="text-xs text-slate-400">Expert customer assistance</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 py-12">
-          {/* Brand info */}
+        {/* Top 4-Column Directory */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-16 border-b border-[#26160d]">
+          {/* Col 1: Brand & Philosophy */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <span className="text-xl font-extrabold text-white">
-                Shop<span className="text-blue-500">Vista</span>
+            <h3 className="font-syne text-2xl font-extrabold tracking-tighter uppercase text-[#f5f4ef] lowercase">
+              brewns<span className="text-xs text-[#d4a373] align-super">®</span>
+            </h3>
+            <p className="text-xs font-mono-code text-[#a89b8d] uppercase leading-relaxed tracking-wider">
+              Specialty coffee house, micro-roaster, and artisan bakery based in San Francisco, California.
+            </p>
+            <div className="pt-2 text-[10px] font-mono-code text-[#d4a373] uppercase tracking-widest flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>ROASTING & EXTRACTING LIVE DAILY</span>
+            </div>
+          </div>
+
+          {/* Col 2: Houses & Locations */}
+          <div className="space-y-3 font-mono-code text-xs">
+            <h4 className="font-syne font-bold text-sm tracking-wider uppercase text-white mb-2">
+              HOUSES
+            </h4>
+            <ul className="space-y-2 text-[#a89b8d] uppercase tracking-wider">
+              <li className="hover:text-white transition-colors cursor-pointer">
+                139 Coffee Street, SoMa
+              </li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                310 Valencia St, Mission
+              </li>
+              <li className="hover:text-white transition-colors cursor-pointer">
+                56 Columbus Ave, North Beach
+              </li>
+              <li className="pt-2 text-[10px] text-[#7a6857]">
+                HOURS: MON — SUN 07:00 — 21:00
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: Navigation & Menu */}
+          <div className="space-y-3 font-mono-code text-xs">
+            <h4 className="font-syne font-bold text-sm tracking-wider uppercase text-white mb-2">
+              EXPLORE
+            </h4>
+            <ul className="space-y-2 text-[#a89b8d] uppercase tracking-wider">
+              <li>
+                <Link to="/products" className="hover:text-white transition-colors">
+                  All Coffee & Beans
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=hot-brews-espresso" className="hover:text-white transition-colors">
+                  Espresso & Brews
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=iced-cold-specialty" className="hover:text-white transition-colors">
+                  Iced & Cold Drinks
+                </Link>
+              </li>
+              <li>
+                <Link to="/products?category=artisan-bakery" className="hover:text-white transition-colors">
+                  Artisan Bakery
+                </Link>
+              </li>
+              <li>
+                <Link to="/cart" className="hover:text-white transition-colors">
+                  Bag / Checkout
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Payments & Guarantee */}
+          <div className="space-y-3 font-mono-code text-xs">
+            <h4 className="font-syne font-bold text-sm tracking-wider uppercase text-white mb-2">
+              CHECKOUT
+            </h4>
+            <p className="text-[#a89b8d] uppercase text-[11px] leading-relaxed">
+              Razorpay 256-bit secure gateway. Supporting UPI (GPay, PhonePe, Paytm), Netbanking, and major Credit Cards.
+            </p>
+            <div className="pt-2">
+              <span className="inline-block text-[9px] font-bold text-[#d4a373] bg-[#221309] border border-[#3b2314] px-2.5 py-1 rounded-md tracking-widest uppercase">
+                SERVER VERIFIED PAYMENTS
               </span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Discover curated luxury essentials, cutting-edge electronics, and lifestyle upgrades with seamless checkout and guaranteed authenticity.
-            </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Quick Links</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li>
-                <Link to="/" className="hover:text-blue-400 transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/products" className="hover:text-blue-400 transition-colors">
-                  Product Catalog
-                </Link>
-              </li>
-              <li>
-                <Link to="/cart" className="hover:text-blue-400 transition-colors">
-                  Shopping Cart
-                </Link>
-              </li>
-              <li>
-                <Link to="/orders" className="hover:text-blue-400 transition-colors">
-                  Track Orders
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Categories</h4>
-            <ul className="space-y-2.5 text-sm text-slate-400">
-              <li>
-                <Link to="/products?category=electronics-gadgets" className="hover:text-blue-400 transition-colors">
-                  Electronics
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=fashion-apparel" className="hover:text-blue-400 transition-colors">
-                  Fashion & Apparel
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=home-living" className="hover:text-blue-400 transition-colors">
-                  Home & Living
-                </Link>
-              </li>
-              <li>
-                <Link to="/products?category=sports-fitness" className="hover:text-blue-400 transition-colors">
-                  Sports & Fitness
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact & Demo */}
-          <div>
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Demo Credentials</h4>
-            <div className="bg-slate-800/80 p-4 rounded-xl text-xs space-y-1.5 border border-slate-700/60">
-              <p className="font-semibold text-slate-200">Admin Account:</p>
-              <p className="text-slate-400">admin@ecommerce.com / Admin@123456</p>
-              <div className="border-t border-slate-700/60 my-2" />
-              <p className="font-semibold text-slate-200">Customer Account:</p>
-              <p className="text-slate-400">john@example.com / User@123456</p>
-            </div>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="pt-8 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} ShopVista E-Commerce Platform. All rights reserved.</p>
-          <p className="text-slate-500">Built with React, Express, PostgreSQL & Razorpay</p>
+        {/* Huge Typographic Watermark Branding */}
+        <div className="pt-12 pb-6 text-center overflow-hidden">
+          <span className="font-syne text-[72px] sm:text-[120px] md:text-[180px] lg:text-[220px] font-extrabold uppercase tracking-tighter text-[#180e09] block leading-none select-none hover:text-[#21140d] transition-colors">
+            brewns®
+          </span>
+        </div>
+
+        {/* Bottom Legal Bar */}
+        <div className="pt-6 border-t border-[#1d1007] flex flex-col sm:flex-row items-center justify-between gap-4 font-mono-code text-[11px] text-[#7a6a58] uppercase tracking-wider">
+          <p>© 2026 BREWNS COFFEE HOUSE INC. ALL RIGHTS RESERVED.</p>
+          <div className="flex gap-6">
+            <span className="hover:text-white cursor-pointer transition-colors">PRIVACY</span>
+            <span className="hover:text-white cursor-pointer transition-colors">TERMS</span>
+            <span className="hover:text-white cursor-pointer transition-colors">WHOLESALE</span>
+          </div>
         </div>
       </div>
     </footer>
