@@ -40,3 +40,6 @@ server/prisma/*.db-journal
 
 # Misc
 *.tsbuildinfo
+
+# Playwright MCP artifacts
+.playwright-mcp/
