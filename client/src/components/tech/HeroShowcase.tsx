@@ -2,36 +2,45 @@ import React from 'react';
 
 export const HeroShowcase: React.FC = () => {
   return (
-    <div className="relative w-full max-w-xl mx-auto h-[460px] sm:h-[520px] flex items-center justify-center select-none">
-      {/* Ambient Radial Glow */}
-      <div className="absolute w-72 h-72 bg-blue-600/20 rounded-full blur-[90px] pointer-events-none" />
+    <div className="relative w-full max-w-lg mx-auto h-[440px] sm:h-[480px] flex items-center justify-center select-none">
+      {/* Ambient Blue Backlight */}
+      <div className="absolute w-64 h-64 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Floating Metallic Spec Rings / Geometry */}
-      <div className="absolute top-10 left-6 animate-float opacity-40">
-        <div className="w-16 h-16 rounded-full border border-blue-400/40 flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border border-blue-400/20" />
+      {/* Floating Modern Hardware Card Container */}
+      <div className="relative z-10 w-80 sm:w-96 rounded-3xl overflow-hidden bg-gradient-to-b from-[#181d2f]/90 to-[#0e111a]/95 border border-[#2b334d] p-6 shadow-[0_30px_70px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-float">
+        {/* Top Tag & Status */}
+        <div className="flex items-center justify-between pb-4 border-b border-[#242b42] text-[10px] font-mono-code">
+          <span className="text-[#60a5fa] font-bold tracking-widest uppercase">// PRO SERIES</span>
+          <span className="inline-flex items-center gap-1.5 text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            IN STOCK
+          </span>
         </div>
-      </div>
 
-      <div className="absolute bottom-20 left-10 animate-float-reverse opacity-40">
-        <div className="w-20 h-20 rounded-2xl border border-slate-600/40 rotate-12 flex items-center justify-center">
-          <span className="text-[9px] font-mono-code text-blue-400 tracking-widest">ANC 40dB</span>
+        {/* Product Image */}
+        <div className="py-6 flex items-center justify-center">
+          <img
+            src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&auto=format&fit=crop&q=85"
+            alt="AcousticPro ANC"
+            className="max-h-56 w-auto object-contain rounded-2xl drop-shadow-[0_20px_30px_rgba(0,0,0,0.7)] hover:scale-105 transition-transform duration-500"
+          />
         </div>
-      </div>
 
-      <div className="absolute top-16 right-8 animate-float opacity-50">
-        <div className="px-3 py-1 rounded-full border border-blue-500/40 bg-blue-950/30 text-[10px] font-mono-code text-blue-300">
-          // TITANIUM DRIVER
+        {/* Hardware Specs Strip */}
+        <div className="pt-4 border-t border-[#242b42] flex items-center justify-between font-mono-code text-xs">
+          <div>
+            <h4 className="font-syne font-bold text-sm text-white uppercase tracking-tight">
+              AcousticPro ANC
+            </h4>
+            <p className="text-[10px] text-[#7d87a4] uppercase mt-0.5">
+              40mm Titanium · 45h Battery
+            </p>
+          </div>
+          <div className="text-right">
+            <span className="font-bold text-sm text-white">₹12,999</span>
+            <p className="text-[9px] text-[#60a5fa] uppercase tracking-wider">$159 USD</p>
+          </div>
         </div>
-      </div>
-
-      {/* Centerpiece Luxury Product Image */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center animate-float">
-        <img
-          src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&auto=format&fit=crop&q=85"
-          alt="AcousticPro ANC Wireless Headphones"
-          className="max-h-[420px] sm:max-h-[460px] w-auto object-contain rounded-3xl drop-shadow-[0_35px_60px_rgba(0,0,0,0.9)] border border-slate-800/80"
-        />
       </div>
     </div>
   );

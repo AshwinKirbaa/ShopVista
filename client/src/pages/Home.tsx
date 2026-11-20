@@ -98,23 +98,9 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Center-Right Hero Hardware Visual & Floating Badge */}
+            {/* Center-Right Hero Hardware Showcase */}
             <div className="lg:col-span-6 relative flex items-center justify-center">
               <HeroShowcase />
-
-              {/* Floating Badge Card (Top Right / Exact Style from Reference) */}
-              <div className="absolute top-2 sm:top-6 right-2 sm:right-6 bg-[#121524]/90 backdrop-blur-md border border-[#272d45] rounded-xl p-4 text-[#f5f4ef] font-mono-code shadow-2xl max-w-[220px] hidden sm:block">
-                <div className="text-[9px] text-[#60a5fa] tracking-widest uppercase mb-1">
-                  // ON STAGE
-                </div>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-sm font-syne font-bold uppercase text-white truncate max-w-[130px]">ACOUSTICPRO ANC</span>
-                  <span className="text-sm font-bold text-white">₹12,999</span>
-                </div>
-                <div className="mt-2 text-[9px] text-[#94a3b8] border-t border-[#1e2337] pt-1.5 uppercase leading-tight tracking-wider">
-                  40MM TITANIUM · 45H BATTERY
-                </div>
-              </div>
             </div>
           </div>
 
@@ -345,9 +331,9 @@ export const Home: React.FC = () => {
             {/* Left Floating Device Component */}
             <div className="lg:col-span-4 flex items-center justify-center">
               <img
-                src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80"
-                alt="Precision Dock"
-                className="max-h-72 w-auto object-contain rounded-3xl shadow-2xl animate-float border border-slate-800"
+                src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&auto=format&fit=crop&q=80"
+                alt="Precision Computing"
+                className="max-h-72 w-auto object-contain rounded-3xl shadow-2xl animate-float border border-[#2b334d]"
               />
             </div>
 
