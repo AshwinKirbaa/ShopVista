@@ -16,7 +16,6 @@ import { OrderDetail } from './pages/OrderDetail';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import { CompareSearch } from './pages/CompareSearch';
 import { NotFound } from './pages/NotFound';
 
 // Admin Pages
@@ -35,7 +34,6 @@ export const App: React.FC = () => {
         {/* Public & Customer Storefront Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/compare" element={<CompareSearch />} />
           <Route path="/products" element={<Products />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
