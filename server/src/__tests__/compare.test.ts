@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ProductMatchingEngine } from '../services/comparison/ProductMatchingEngine';
 import { PriceComparisonEngine } from '../services/comparison/PriceComparisonEngine';
+import prisma from '../config/prisma';
 
 describe('ProductMatchingEngine', () => {
   it('strictly isolates iPhone 17 Pro 256GB from 512GB, Pro Max, and Refurbished', () => {
