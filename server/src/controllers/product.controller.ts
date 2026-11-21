@@ -169,7 +169,17 @@ export const getProducts = async (req: Request, res: Response) => {
 
               // Re-run semantic search after ingestion
               const freshCandidates = await prisma.product.findMany({
-                where: { isActive: true },
+                where: {
+                  isActive: true,
+                  ...(resolvedCategoryId && { categoryId: resolvedCategoryId }),
+                  ...(isFeatured !== undefined && { isFeatured: String(isFeatured) === 'true' }),
+                  ...((minPrice || maxPrice) && {
+                    price: {
+                      ...(minPrice ? { gte: new Prisma.Decimal(Number(minPrice)) } : {}),
+                      ...(maxPrice ? { lte: new Prisma.Decimal(Number(maxPrice)) } : {}),
+                    },
+                  }),
+                },
                 include: {
                   category: {
                     select: { id: true, name: true, slug: true },
@@ -181,6 +191,9 @@ export const getProducts = async (req: Request, res: Response) => {
               if (reRanked.length > 0) {
                 total = reRanked.length;
                 products = reRanked.slice(skip, skip + take).map((r) => r.item);
+              } else {
+                total = 0;
+                products = [];
               }
             }
           }
