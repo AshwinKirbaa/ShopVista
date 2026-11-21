@@ -275,8 +275,53 @@ export class PriceComparisonEngine {
       );
     }
 
-    // Sort groups according to sortBy option
+    // Helper to calculate exact query match relevance
+    const cleanQuery = query.toLowerCase().trim();
+    const queryTokens = cleanQuery
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 0 && !['in', 'a', 'the', 'for', 'with', 'and', 'or', 'to', 'gb', 'tb'].includes(w));
+
+    const computeRelevance = (g: ComparisonGroup): number => {
+      const gTitle = g.canonicalTitle.toLowerCase();
+      const gModel = g.model.toLowerCase();
+      const gBrand = g.brand.toLowerCase();
+
+      // Direct match
+      if (gTitle.includes(cleanQuery) || gModel.includes(cleanQuery)) {
+        return 1000;
+      }
+
+      // Check how many query tokens are matched in title or model
+      let tokenScore = 0;
+      for (const t of queryTokens) {
+        if (gTitle.includes(t) || gModel.includes(t)) {
+          tokenScore += 100;
+        } else if (gBrand.includes(t)) {
+          tokenScore += 20;
+        }
+      }
+      return tokenScore;
+    };
+
+    // Sort groups: Exact product matches first, in-stock products first, then by selected sortBy
     comparisonGroups.sort((a, b) => {
+      const relA = computeRelevance(a);
+      const relB = computeRelevance(b);
+
+      // 1. Exact product matches first
+      if (relA !== relB) {
+        return relB - relA;
+      }
+
+      // 2. In-stock products first
+      const aInStock = a.inStockRetailerCount > 0 ? 1 : 0;
+      const bInStock = b.inStockRetailerCount > 0 ? 1 : 0;
+      if (aInStock !== bInStock) {
+        return bInStock - aInStock;
+      }
+
+      // 3. User-chosen sort metric
       if (sortBy === 'lowest_price') {
         const aP = a.lowestPrice ?? 999999999;
         const bP = b.lowestPrice ?? 999999999;

@@ -191,4 +191,50 @@ describe('PriceComparisonEngine', () => {
       expect(new Date(offer.lastUpdated).getTime()).not.toBeNaN();
     }
   });
+
+  it('searches MacBook Air M4, Samsung Galaxy S25 Ultra, Sony WH-1000XM5, and Logitech G502 successfully', async () => {
+    // 1. MacBook Air M4
+    const macbookRes = await engine.searchAndCompare({ query: 'MacBook Air M4' });
+    expect(macbookRes.groups.length).toBeGreaterThan(0);
+    const macbookGroup = macbookRes.groups.find((g) => g.model.includes('MacBook Air M4'));
+    expect(macbookGroup).toBeDefined();
+    expect(macbookGroup?.offers.length).toBeGreaterThanOrEqual(3);
+
+    // 2. Samsung Galaxy S25 Ultra
+    const s25Res = await engine.searchAndCompare({ query: 'Samsung Galaxy S25 Ultra' });
+    expect(s25Res.groups.length).toBeGreaterThan(0);
+    const s25Group = s25Res.groups.find((g) => g.model.includes('Galaxy S25 Ultra'));
+    expect(s25Group).toBeDefined();
+
+    // 3. Sony WH-1000XM5
+    const sonyRes = await engine.searchAndCompare({ query: 'Sony WH-1000XM5' });
+    expect(sonyRes.groups.length).toBeGreaterThan(0);
+    const sonyGroup = sonyRes.groups.find((g) => g.model.includes('WH-1000XM5'));
+    expect(sonyGroup).toBeDefined();
+
+    // 4. Logitech G502
+    const logiRes = await engine.searchAndCompare({ query: 'Logitech G502' });
+    expect(logiRes.groups.length).toBeGreaterThan(0);
+    const logiGroup = logiRes.groups.find((g) => g.model.includes('G502'));
+    expect(logiGroup).toBeDefined();
+    expect(logiGroup?.brand).toBe('Logitech');
+  });
+
+  it('returns clean empty results for completely nonexistent query', async () => {
+    const res = await engine.searchAndCompare({ query: 'nonexistent_xyz_product_999' });
+    expect(res.groups.length).toBe(0);
+    expect(res.totalGroups).toBe(0);
+  });
+
+  it('returns comprehensive provider diagnostics for each search', async () => {
+    const res = await engine.searchAndCompare({ query: 'iPhone 17 Pro 256GB' });
+    expect(res.diagnostics).toBeDefined();
+    expect(res.diagnostics.length).toBe(5);
+
+    const amazonDiag = res.diagnostics.find((d) => d.slug === 'amazon');
+    expect(amazonDiag).toBeDefined();
+    expect(amazonDiag?.status).toBe('SUCCESS');
+    expect(amazonDiag?.resultCount).toBeGreaterThan(0);
+    expect(amazonDiag?.responseTimeMs).toBeGreaterThanOrEqual(0);
+  });
 });

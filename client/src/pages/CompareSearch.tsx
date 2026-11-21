@@ -105,6 +105,9 @@ export const CompareSearch: React.FC = () => {
         if (res.success && res.data) {
           setGroups(res.data.groups);
           setTotalGroups(res.data.totalGroups);
+          if (res.data.diagnostics) {
+            setDiagnostics(res.data.diagnostics);
+          }
         }
       })
       .catch((err) => console.error('Search comparison error:', err))
@@ -188,15 +191,35 @@ export const CompareSearch: React.FC = () => {
             </div>
 
             {/* Live Connected Retailers Status Bar */}
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
-              {providers.map((p) => (
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              {(diagnostics.length > 0 ? diagnostics : providers.map((p) => ({
+                provider: p.name,
+                slug: p.slug,
+                status: p.isAvailable ? 'SUCCESS' : 'ERROR',
+                resultCount: -1,
+                responseTimeMs: p.latencyMs,
+                feedType: 'DEVELOPMENT_FEED',
+              }))).map((d: any) => (
                 <div
-                  key={p.slug}
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px] font-mono text-zinc-300"
+                  key={d.slug}
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/5 border border-white/5 text-[11px] font-mono text-zinc-300 shadow-xs"
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${p.isAvailable ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-                  <span className="font-semibold text-white">{p.name}</span>
-                  <span className="text-zinc-500">{p.isAvailable ? `${p.latencyMs}ms` : 'offline'}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${d.status === 'SUCCESS' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
+                  <span className="font-semibold text-white">{d.provider}</span>
+                  {d.resultCount >= 0 ? (
+                    <span className="text-blue-400 font-bold">{d.resultCount} offers</span>
+                  ) : (
+                    <span className="text-zinc-500">{d.status === 'SUCCESS' ? `${d.responseTimeMs}ms` : 'offline'}</span>
+                  )}
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded border ${
+                    d.feedType === 'LIVE_API'
+                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800'
+                      : d.feedType === 'INTERNAL_DATABASE'
+                      ? 'bg-blue-950/60 text-blue-300 border-blue-800'
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  }`}>
+                    {d.feedType === 'LIVE_API' ? 'Live API' : d.feedType === 'INTERNAL_DATABASE' ? 'Store DB' : 'Dev Feed'}
+                  </span>
                 </div>
               ))}
             </div>

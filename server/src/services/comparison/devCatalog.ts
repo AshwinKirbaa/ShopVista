@@ -1937,6 +1937,19 @@ export function matchCatalogQuery(item: DevCatalogItem, rawQuery: string): boole
     return false;
   }
 
+  const brandLower = item.brand.toLowerCase();
+  const modelLower = item.model.toLowerCase();
+  const nameLower = item.name.toLowerCase();
+
+  // If user searched for a brand (e.g. "apple", "samsung", "sony", "logitech"),
+  // and this item is from a DIFFERENT brand, reject immediately!
+  const knownBrands = ['apple', 'samsung', 'sony', 'google', 'oneplus', 'dell', 'asus', 'lenovo', 'bose', 'sennheiser', 'logitech', 'razer', 'steelseries', 'keychron', 'lg', 'shopvista'];
+  const queriedBrands = knownBrands.filter((b) => q.includes(b));
+  if (queriedBrands.length > 0 && !queriedBrands.includes(brandLower)) {
+    // If the query mentions specific brands and this item is not one of them, do NOT match
+    return false;
+  }
+
   // Combine all searchable text for the item
   const itemSearchable = [
     item.name,
@@ -1966,25 +1979,28 @@ export function matchCatalogQuery(item: DevCatalogItem, rawQuery: string): boole
     return true;
   }
 
-  // 3. Category match fallback: if the query matches a category name (e.g. "smartphones", "laptop", "mouse", "monitor")
+  // 3. Category match fallback: ONLY for generic category queries (e.g. "smartphones", "laptops", "headphones", "monitors")
   const categoryTerms: Record<string, string[]> = {
-    Smartphones: ['phone', 'smartphones', 'smartphone', 'mobile', 'iphone', 'galaxy', 'pixel', 'oneplus'],
-    Laptops: ['laptop', 'laptops', 'notebook', 'macbook', 'xps', 'thinkpad', 'zephyrus'],
-    Headphones: ['headphone', 'headphones', 'earbuds', 'audio', 'earphones', 'headset', 'airpods', 'bose', 'sony'],
-    'Gaming Accessories': ['mouse', 'mice', 'gaming', 'deathadder', 'g502', 'razer', 'logitech'],
-    Keyboards: ['keyboard', 'keyboards', 'mechanical', 'keychron', 'mx mechanical'],
-    Smartwatches: ['smartwatch', 'smartwatches', 'watch', 'apple watch', 'galaxy watch'],
-    Tablets: ['tablet', 'tablets', 'ipad', 'tab'],
-    Monitors: ['monitor', 'monitors', 'display', 'screen', 'ultrasharp', 'ultragear', 'oled'],
+    Smartphones: ['phone', 'smartphones', 'smartphone', 'mobile', 'mobiles'],
+    Laptops: ['laptop', 'laptops', 'notebook', 'notebooks'],
+    Headphones: ['headphone', 'headphones', 'earbuds', 'audio', 'earphones', 'headset', 'earphone'],
+    'Gaming Accessories': ['mouse', 'mice', 'gaming mouse'],
+    Keyboards: ['keyboard', 'keyboards', 'mechanical keyboard'],
+    Smartwatches: ['smartwatch', 'smartwatches', 'watches', 'smart watch'],
+    Tablets: ['tablet', 'tablets', 'pad'],
+    Monitors: ['monitor', 'monitors', 'display', 'displays', 'screen', 'screens'],
   };
 
   const matchedCategories = Object.entries(categoryTerms).filter(([cat, keywords]) => {
-    return keywords.some((kw) => q.includes(kw));
+    return keywords.some((kw) => tokens.includes(kw) || q === kw);
   });
 
   if (matchedCategories.some(([cat]) => cat.toLowerCase() === item.category.toLowerCase())) {
-    // If the query was just the category or brand + category, match
-    return true;
+    // Only match category if query did NOT specify an un-matched model or specific product name
+    const hasSpecificModelToken = tokens.some((t) => !['phone', 'phones', 'smartphones', 'smartphone', 'mobile', 'laptop', 'laptops', 'headphone', 'headphones', 'earbuds', 'audio', 'keyboard', 'keyboards', 'mouse', 'mice', 'watch', 'smartwatch', 'tablet', 'tablets', 'monitor', 'monitors'].includes(t));
+    if (!hasSpecificModelToken) {
+      return true;
+    }
   }
 
   return false;
