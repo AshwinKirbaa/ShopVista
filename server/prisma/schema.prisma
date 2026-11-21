@@ -312,6 +312,7 @@ model MarketplaceProduct {
   matchItems    ProductMatchItem[]
   priceHistory  PriceHistory[]
 
+  @@unique([marketplaceId, externalId])
   @@index([marketplaceId])
   @@index([brand])
   @@index([model])

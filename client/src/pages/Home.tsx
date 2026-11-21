@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   ArrowRight,
   Plus,
+  Sparkles,
 } from 'lucide-react';
 import { productService } from '../services/product.service';
 import { Product } from '../types';

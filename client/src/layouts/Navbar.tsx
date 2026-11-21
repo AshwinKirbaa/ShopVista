@@ -39,6 +39,12 @@ export const Navbar: React.FC = () => {
             <Link to="/products" className="hover:text-white transition-colors">
               Shop
             </Link>
+            <Link to="/compare" className="relative text-blue-400 hover:text-blue-300 font-bold transition-colors flex items-center gap-1.5">
+              <span>Compare</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 tracking-tight">
+                Live
+              </span>
+            </Link>
             <Link to="/products?category=electronics-audio" className="hover:text-white transition-colors">
               Hardware
             </Link>
@@ -200,6 +206,13 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0f111a] border-b border-[#212538] px-4 pt-3 pb-6 font-mono-code text-xs uppercase tracking-wider space-y-3">
+          <Link
+            to="/compare"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-blue-400 font-bold hover:text-blue-300"
+          >
+            Price Comparison [Live]
+          </Link>
           <Link
             to="/products"
             onClick={() => setMobileMenuOpen(false)}

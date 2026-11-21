@@ -7,6 +7,7 @@ export class ProductMatchingEngine {
   static cleanText(input: string): string {
     return input
       .toLowerCase()
+      .replace(/(\d+)\s*(gb|tb|mb)\b/gi, '$1$2')
       .replace(/[\(\)\[\]\{\}\-\–\_]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -176,6 +177,13 @@ export class ProductMatchingEngine {
       ram,
       condition,
     };
+  }
+
+  /**
+   * Alias for parseProductSpecs
+   */
+  static extractSpecs(title: string, rawCondition?: string, rawBrand?: string): VariantSpecs {
+    return this.parseProductSpecs(title, rawBrand, rawCondition);
   }
 
   /**

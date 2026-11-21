@@ -15,6 +15,7 @@ import cartRoutes from './routes/cart';
 import orderRoutes from './routes/order';
 import paymentRoutes from './routes/payment';
 import adminRoutes from './routes/admin';
+import compareRoutes from './routes/compare';
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/compare', compareRoutes);
 
 // 404 Route handler
 app.use('*', (req, res) => {
