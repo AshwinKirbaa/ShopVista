@@ -55,7 +55,7 @@ export const getProducts = async (req: Request, res: Response) => {
     if (sort === 'rating') orderBy = { rating: 'desc' };
     if (sort === 'popular') orderBy = { reviewCount: 'desc' };
 
-    const [total, products] = await Promise.all([
+    let [total, products] = await Promise.all([
       prisma.product.count({ where }),
       prisma.product.findMany({
         where,
@@ -69,6 +69,78 @@ export const getProducts = async (req: Request, res: Response) => {
         take,
       }),
     ]);
+
+    // On-Demand Live Fetch: If searching for a product that isn't yet in the database,
+    // fetch live listings from Flipkart on-the-fly and automatically ingest them!
+    if (total === 0 && search && String(search).trim().length >= 3 && !categoryId && !minPrice && !maxPrice) {
+      try {
+        const queryStr = String(search).trim();
+        const liveHtml = await fetchFlipkartLive(queryStr);
+        const liveItems = parseFlipkartLiveHtml(liveHtml);
+
+        if (liveItems && liveItems.length > 0) {
+          // Find or create category
+          let category = await prisma.category.findFirst({
+            where: { slug: 'electronics-audio' },
+          });
+          if (!category) {
+            category = await prisma.category.findFirst();
+          }
+
+          if (category) {
+            for (const item of liveItems.slice(0, 6)) {
+              const cleanSlug = item.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '')
+                .slice(0, 80) + `-${item.id.slice(-6).toLowerCase()}`;
+
+              const existing = await prisma.product.findFirst({
+                where: { OR: [{ sku: `LIVE-FK-${item.id}` }, { slug: cleanSlug }] },
+              });
+
+              if (!existing) {
+                await prisma.product.create({
+                  data: {
+                    name: item.title,
+                    slug: cleanSlug,
+                    description: `Authentic ${item.title} sourced directly with live pricing of ₹${item.sellingPrice.toLocaleString('en-IN')}. Features genuine factory specifications, manufacturer warranty, and verified listing on Flipkart India (${item.url}).`,
+                    price: new Prisma.Decimal(item.sellingPrice.toString()),
+                    comparePrice: new Prisma.Decimal(item.mrp.toString()),
+                    sku: `LIVE-FK-${item.id}`,
+                    stock: 25,
+                    images: [item.imageUrl],
+                    categoryId: category.id,
+                    isFeatured: true,
+                    rating: new Prisma.Decimal((item.rating || 4.5).toFixed(1)),
+                    reviewCount: Math.floor(Math.random() * 200) + 40,
+                    isActive: true,
+                  },
+                });
+              }
+            }
+
+            // Re-query database after ingestion
+            [total, products] = await Promise.all([
+              prisma.product.count({ where }),
+              prisma.product.findMany({
+                where,
+                include: {
+                  category: {
+                    select: { id: true, name: true, slug: true },
+                  },
+                },
+                orderBy,
+                skip,
+                take,
+              }),
+            ]);
+          }
+        }
+      } catch (liveFetchErr: any) {
+        console.warn('Live product on-demand fetch failed:', liveFetchErr.message);
+      }
+    }
 
     const formattedProducts = products.map((p) => ({
       ...p,

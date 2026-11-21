@@ -51,7 +51,16 @@ export class FlipkartProvider implements MarketplaceProvider {
       const liveHtml = await fetchFlipkartLive(query);
       const liveScraped = parseFlipkartLiveHtml(liveHtml);
       if (liveScraped && liveScraped.length > 0) {
-        return liveScraped.map((item) => this.normalizeScrapedItem(item));
+        // Ensure scraped results match the requested query words (relevance filter)
+        const queryTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+        const relevantScraped = queryTerms.length === 0 ? liveScraped : liveScraped.filter(item => {
+          const lowerTitle = item.title.toLowerCase();
+          return queryTerms.some(term => lowerTitle.includes(term));
+        });
+
+        if (relevantScraped.length > 0) {
+          return relevantScraped.map((item) => this.normalizeScrapedItem(item));
+        }
       }
     } catch (scrapeErr: any) {
       console.warn('[FlipkartProvider] Live extraction error, using fallback:', scrapeErr.message);
