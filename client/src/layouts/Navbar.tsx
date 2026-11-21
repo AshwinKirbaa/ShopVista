@@ -45,10 +45,10 @@ export const Navbar: React.FC = () => {
                 Live
               </span>
             </Link>
-            <Link to="/products?category=electronics-audio" className="hover:text-white transition-colors">
+            <Link to="/products?category=audio-studio-sound" className="hover:text-white transition-colors">
               Hardware
             </Link>
-            <Link to="/products?category=mechanical-computing" className="hover:text-white transition-colors">
+            <Link to="/products?category=laptops-computing" className="hover:text-white transition-colors">
               Computing
             </Link>
             <a href="#philosophy" className="hover:text-white transition-colors">
