@@ -237,4 +237,78 @@ describe('PriceComparisonEngine', () => {
     expect(amazonDiag?.resultCount).toBeGreaterThan(0);
     expect(amazonDiag?.responseTimeMs).toBeGreaterThanOrEqual(0);
   });
+
+  describe('Price Intelligence & Alerts Engine', () => {
+    it('generates multi-timeline price history snapshots for 7, 30, and 90 days', async () => {
+      const history7 = await engine.getPriceHistory('apple-iphone-17-pro-256gb-new', 7);
+      expect(history7.daysRange).toBe(7);
+      expect(history7.history.length).toBeGreaterThan(0);
+      expect(history7.stats.lowestRecordedPrice).toBeGreaterThan(0);
+      expect(history7.stats.highestRecordedPrice).toBeGreaterThanOrEqual(history7.stats.lowestRecordedPrice);
+      expect(history7.stats.averagePrice).toBeGreaterThan(0);
+
+      const history30 = await engine.getPriceHistory('apple-iphone-17-pro-256gb-new', 30);
+      expect(history30.daysRange).toBe(30);
+      expect(history30.history.length).toBeGreaterThan(0);
+
+      const history90 = await engine.getPriceHistory('apple-iphone-17-pro-256gb-new', 90);
+      expect(history90.daysRange).toBe(90);
+      expect(history90.history.length).toBeGreaterThan(0);
+    });
+
+    it('creates, retrieves, evaluates, and prevents duplicate price alert notifications', async () => {
+      const { PriceAlertService } = await import('../services/comparison/PriceAlertService');
+      const testUser = await prisma.user.findFirst();
+      if (!testUser) return;
+
+      const groupKey = 'apple-iphone-17-pro-256gb-new';
+
+      // 1. Create alert with target price ₹1,29,000 (higher than lowest ₹1,28,499)
+      const alert = await PriceAlertService.createAlert({
+        userId: testUser.id,
+        groupKey,
+        productName: 'Apple iPhone 17 Pro 256GB',
+        targetPrice: 129000,
+        currentPrice: 130000,
+        email: 'test@shopvista.com',
+      });
+
+      expect(alert).toBeDefined();
+      expect(Number(alert.targetPrice)).toBe(129000);
+      expect(alert.isActive).toBe(true);
+
+      // 2. Fetch user alerts
+      const userAlerts = await PriceAlertService.getUserAlerts(testUser.id);
+      expect(userAlerts.length).toBeGreaterThan(0);
+      const found = userAlerts.find((a) => a.id === alert.id);
+      expect(found).toBeDefined();
+
+      // 3. Evaluate alert matching with a verified offer of ₹1,28,499 (below ₹1,29,000)
+      const mockOffers: any[] = [
+        {
+          marketplaceSlug: 'shopvista',
+          marketplaceName: 'ShopVista Direct',
+          finalPrice: 128499,
+          inStock: true,
+          productUrl: '/product/apple-iphone-17-pro-256gb',
+        },
+      ];
+
+      const triggerResults = await PriceAlertService.evaluateAlertsForGroup(groupKey, mockOffers);
+      expect(triggerResults.length).toBeGreaterThanOrEqual(1);
+      const triggered = triggerResults.find((r) => r.alertId === alert.id);
+      expect(triggered).toBeDefined();
+      expect(triggered?.status).toBe('NOTIFICATION_SENT');
+      expect(triggered?.triggeredPrice).toBe(128499);
+
+      // 4. Evaluate again immediately -> MUST BE SKIPPED as duplicate
+      const duplicateResults = await PriceAlertService.evaluateAlertsForGroup(groupKey, mockOffers);
+      const dup = duplicateResults.find((r) => r.alertId === alert.id);
+      expect(dup).toBeDefined();
+      expect(dup?.status).toBe('SKIPPED_DUPLICATE');
+
+      // 5. Clean up test alert
+      await PriceAlertService.deleteAlert(alert.id, testUser.id);
+    });
+  });
 });

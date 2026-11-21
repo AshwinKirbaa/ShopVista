@@ -98,7 +98,11 @@ export interface PriceHistoryItem {
   id: string;
   marketplaceName: string;
   marketplaceLogo: string;
+  marketplaceSlug: string;
   price: number;
+  inStock: boolean;
+  feedType: 'LIVE_API' | 'DEVELOPMENT_FEED' | 'INTERNAL_DATABASE';
+  productIdentifier?: string;
   recordedAt: string;
 }
 
@@ -108,4 +112,23 @@ export interface PriceStatistics {
   averagePrice: number;
   priceDropPercentage: number;
   dataPointsCount: number;
+  currentLowestPrice?: number;
+  daysRange: number; // 7, 30, or 90
+}
+
+export interface PriceHistoryResponse {
+  groupKey: string;
+  daysRange: number;
+  history: {
+    date: string;
+    amazon?: number;
+    flipkart?: number;
+    croma?: number;
+    reliance?: number;
+    shopvista?: number;
+    lowest?: number;
+    feedType?: string;
+  }[];
+  snapshots: PriceHistoryItem[];
+  stats: PriceStatistics;
 }

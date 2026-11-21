@@ -398,6 +398,9 @@ model PriceHistory {
   marketplaceProductId String
   marketplaceId        String
   price                Decimal  @db.Decimal(10, 2)
+  inStock              Boolean  @default(true)
+  feedType             String   @default("DEVELOPMENT_FEED") // "LIVE_API", "DEVELOPMENT_FEED", "INTERNAL_DATABASE"
+  productIdentifier    String?  // externalId / SKU / GTIN
   recordedAt           DateTime @default(now())
 
   offer                ProductOffer?       @relation(fields: [offerId], references: [id], onDelete: SetNull)
@@ -407,6 +410,7 @@ model PriceHistory {
   @@index([marketplaceProductId])
   @@index([marketplaceId])
   @@index([recordedAt])
+  @@index([feedType])
   @@map("price_history")
 }
 

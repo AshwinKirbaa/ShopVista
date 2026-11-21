@@ -62,7 +62,8 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 export const getPriceHistory = async (req: Request, res: Response) => {
   try {
     const groupKey = req.params.groupKey as string;
-    const data = await compareEngine.getPriceHistory(groupKey);
+    const days = req.query.days ? Number(req.query.days) : 30;
+    const data = await compareEngine.getPriceHistory(groupKey, days);
     return sendSuccess(res, data, 'Price history and statistics retrieved');
   } catch (error: any) {
     console.error('getPriceHistory error:', error);
