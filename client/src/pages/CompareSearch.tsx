@@ -430,11 +430,17 @@ export const CompareSearch: React.FC = () => {
                               <p className="text-[11px] font-mono text-zinc-400">
                                 {offer.deliveryTime || 'Standard Shipping'}
                               </p>
-                              {offer.sellerName && (
-                                <p className="text-[10px] font-mono text-zinc-500">
-                                  Seller: {offer.sellerName}
-                                </p>
-                              )}
+                              <div className="flex items-center gap-2 pt-0.5">
+                                {offer.sellerName && (
+                                  <p className="text-[10px] font-mono text-zinc-500">
+                                    Seller: {offer.sellerName}
+                                  </p>
+                                )}
+                                <span className="text-[10px] font-mono text-zinc-600">•</span>
+                                <span className="text-[10px] font-mono text-zinc-500">
+                                  Updated: {new Date(offer.lastUpdated).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
                             </div>
                           </div>
 

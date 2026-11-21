@@ -160,4 +160,35 @@ describe('PriceComparisonEngine', () => {
     expect(historyData.stats.lowestRecordedPrice).toBeGreaterThan(0);
     expect(historyData.stats.averagePrice).toBeGreaterThan(0);
   });
+
+  it('guarantees unconfigured external providers never return misleading sample data in production', async () => {
+    const origEnv = process.env.NODE_ENV;
+    try {
+      process.env.NODE_ENV = 'production';
+      // Amazon provider with unconfigured keys in production
+      const { AmazonProvider } = await import('../services/comparison/providers/AmazonProvider');
+      const amazon = new AmazonProvider();
+
+      const health = await amazon.healthCheck();
+      expect(health.isAvailable).toBe(false);
+      expect(health.error).toBeDefined();
+
+      const results = await amazon.searchProducts('iPhone 17 Pro');
+      expect(results.length).toBe(0); // Zero fake items returned in production!
+    } finally {
+      process.env.NODE_ENV = origEnv;
+    }
+  });
+
+  it('ensures each offer explicitly carries feedType and lastUpdated timestamp', async () => {
+    const res = await engine.searchAndCompare({ query: 'iPhone 17 Pro 256GB' });
+    const allOffers = res.groups.flatMap((g) => g.offers);
+    expect(allOffers.length).toBeGreaterThan(0);
+
+    for (const offer of allOffers) {
+      expect(['LIVE_API', 'DEVELOPMENT_FEED', 'INTERNAL_DATABASE']).toContain(offer.feedType);
+      expect(offer.lastUpdated).toBeDefined();
+      expect(new Date(offer.lastUpdated).getTime()).not.toBeNaN();
+    }
+  });
 });

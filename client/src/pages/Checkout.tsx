@@ -35,6 +35,7 @@ export const Checkout: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [gatewayMode, setGatewayMode] = useState<'AUTO' | 'SANDBOX_SIMULATOR' | 'OFFICIAL_RAZORPAY'>('AUTO');
   const [activeTestModal, setActiveTestModal] = useState<{
     isOpen: boolean;
     orderNumber: string;
@@ -132,18 +133,16 @@ export const Checkout: React.FC = () => {
         return;
       }
 
-      // In development or when using test/sandbox environment, always use the built-in
-      // interactive Razorpay UPI & Cards Sandbox modal to guarantee a 100% reliable test experience
-      const isTestEnv =
+      // Determine whether to use internal sandbox simulator or official Razorpay Checkout SDK
+      const shouldUseSimulator =
+        gatewayMode === 'SANDBOX_SIMULATOR' ||
         !orderData.keyId ||
         orderData.keyId === 'rzp_test_placeholder' ||
-        orderData.keyId.startsWith('rzp_test_') ||
         orderData.razorpayOrderId?.startsWith('rzp_mock_') ||
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1';
+        (gatewayMode === 'AUTO' && (!orderData.keyId || orderData.keyId === 'rzp_test_placeholder'));
 
-      if (isTestEnv) {
-        // Directly open the Razorpay UPI & Cards Sandbox modal
+      if (shouldUseSimulator) {
+        // Open the Interactive Razorpay UPI & Cards Sandbox modal
         setActiveTestModal({
           isOpen: true,
           orderNumber: orderData.orderNumber,
@@ -363,8 +362,27 @@ export const Checkout: React.FC = () => {
                   <p className="text-xs text-slate-500">
                     Google Pay, PhonePe, Paytm, BHIM, NetBanking, and Cards
                   </p>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md w-fit">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Razorpay Secured
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100/80">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md w-fit">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Razorpay Secured
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setGatewayMode(gatewayMode === 'OFFICIAL_RAZORPAY' ? 'SANDBOX_SIMULATOR' : 'OFFICIAL_RAZORPAY');
+                        }}
+                        className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${
+                          gatewayMode === 'OFFICIAL_RAZORPAY'
+                            ? 'bg-blue-600 text-white border-blue-600 font-bold'
+                            : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                        }`}
+                        title="Toggle between official Razorpay Checkout SDK and internal zero-setup sandbox simulator"
+                      >
+                        {gatewayMode === 'OFFICIAL_RAZORPAY' ? 'Mode: Official SDK' : 'Mode: Sandbox Simulator'}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

@@ -86,22 +86,34 @@ export class RelianceDigitalProvider implements MarketplaceProvider {
   isInternal = false;
 
   isConfigured(): boolean {
-    return false;
+    return Boolean(process.env.RELIANCE_API_KEY);
   }
 
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
+    const configured = this.isConfigured();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isAvailable = configured || !isProduction;
+
     return {
       slug: this.slug,
       name: this.name,
       logo: this.logoUrl,
-      isConfigured: this.isConfigured(),
-      isAvailable: true,
+      isConfigured: configured,
+      isAvailable,
       latencyMs: Date.now() - start,
+      error: !configured && isProduction ? 'Reliance Digital API credentials not configured in production' : undefined,
     };
   }
 
   async searchProducts(query: string): Promise<NormalizedProduct[]> {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // In production, unconfigured external provider must not return sample data
+    if (!this.isConfigured() && isProduction) {
+      return [];
+    }
+
     const cleanQ = ProductMatchingEngine.cleanText(query);
     const words = cleanQ.split(' ').filter(Boolean);
 
