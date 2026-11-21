@@ -165,14 +165,14 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          {/* 4 Clean Minimalist Square 1px Bordered Cards (Exact Reference Grid) */}
+          {/* 4 Clean Minimalist Square 1px Bordered Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Card 1: ACOUSTICPRO ANC */}
+            {/* Card 1: APPLE IPHONE 17 */}
             <div className="group relative bg-[#f5f4ef] border border-[#120a06] p-5 flex flex-col justify-between aspect-square hover:shadow-xl transition-all">
               <div className="flex justify-between items-start font-mono-code text-xs text-[#7a6a58]">
                 <span className="font-bold text-[#120a06]">01</span>
                 <button
-                  onClick={(e) => handleQuickAdd('acousticpro-anc', 'AcousticPro ANC Headphones', e)}
+                  onClick={(e) => handleQuickAdd('apple-iphone-17', 'Apple iPhone 17 (Black, 256 GB)', e)}
                   className="w-6 h-6 rounded-full border border-[#120a06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-[#120a06] hover:text-white"
                   title="Add to order"
                 >
@@ -180,26 +180,26 @@ export const Home: React.FC = () => {
                 </button>
               </div>
 
-              <div className="my-auto flex items-center justify-center py-2">
+              <Link to="/products/apple-iphone-17-black-256-gb-g4zqzk" className="my-auto flex items-center justify-center py-2">
                 <img
-                  src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80"
-                  alt="AcousticPro ANC"
+                  src="https://rukminim2.flixcart.com/image/312/312/xif0q/mobile/2/p/o/-original-imahqvad9pbyujab.jpeg?q=70"
+                  alt="Apple iPhone 17"
                   className="max-h-40 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
                 />
-              </div>
+              </Link>
 
               <div className="flex justify-between items-baseline font-mono-code text-xs text-[#120a06] uppercase pt-2 border-t border-[#ded8cb]">
-                <span className="font-bold tracking-wider truncate max-w-[130px]">ACOUSTICPRO ANC</span>
-                <span className="font-bold">₹12,999</span>
+                <span className="font-bold tracking-wider truncate max-w-[130px]">IPHONE 17 (256GB)</span>
+                <span className="font-bold">₹89,100</span>
               </div>
             </div>
 
-            {/* Card 2: MECHANICAL KEYBOARD */}
+            {/* Card 2: LENOVO THINKPAD E14 */}
             <div className="group relative bg-[#f5f4ef] border border-[#120a06] p-5 flex flex-col justify-between aspect-square hover:shadow-xl transition-all">
               <div className="flex justify-between items-start font-mono-code text-xs text-[#7a6a58]">
                 <span className="font-bold text-[#120a06]">02</span>
                 <button
-                  onClick={(e) => handleQuickAdd('ergomechanical-custom-keyboard', 'Custom Keyboard', e)}
+                  onClick={(e) => handleQuickAdd('lenovo-thinkpad', 'Lenovo ThinkPad E14', e)}
                   className="w-6 h-6 rounded-full border border-[#120a06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-[#120a06] hover:text-white"
                   title="Add to order"
                 >
@@ -207,26 +207,26 @@ export const Home: React.FC = () => {
                 </button>
               </div>
 
-              <div className="my-auto flex items-center justify-center py-2">
+              <Link to="/products/lenovo-thinkpad-e14-gen-5-amd-ryzen-5-7th-gen-7430u-16-gb-512-gb-ssd-windows-11--dtf6uc" className="my-auto flex items-center justify-center py-2">
                 <img
-                  src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500&auto=format&fit=crop&q=80"
-                  alt="Mechanical Keyboard"
-                  className="max-h-40 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
+                  src="https://rukminim2.flixcart.com/image/312/312/xif0q/computer/e/o/n/thinkpad-e14-business-laptop-lenovo-original-imah7qfvgmgmyzfu.jpeg?q=70"
+                  alt="Lenovo ThinkPad E14"
+                  className="max-h-36 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
                 />
-              </div>
+              </Link>
 
               <div className="flex justify-between items-baseline font-mono-code text-xs text-[#120a06] uppercase pt-2 border-t border-[#ded8cb]">
-                <span className="font-bold tracking-wider truncate max-w-[130px]">CUSTOM KEYBOARD</span>
-                <span className="font-bold">₹8,499</span>
+                <span className="font-bold tracking-wider truncate max-w-[130px]">THINKPAD E14</span>
+                <span className="font-bold">₹95,606</span>
               </div>
             </div>
 
-            {/* Card 3: APEXFIT TITANIUM WATCH */}
+            {/* Card 3: SONY WH-CH530 */}
             <div className="group relative bg-[#f5f4ef] border border-[#120a06] p-5 flex flex-col justify-between aspect-square hover:shadow-xl transition-all">
               <div className="flex justify-between items-start font-mono-code text-xs text-[#7a6a58]">
                 <span className="font-bold text-[#120a06]">03</span>
                 <button
-                  onClick={(e) => handleQuickAdd('apexfit-pro-titanium', 'ApexFit Titanium Watch', e)}
+                  onClick={(e) => handleQuickAdd('sony-wh', 'Sony WH-CH530 Headphones', e)}
                   className="w-6 h-6 rounded-full border border-[#120a06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-[#120a06] hover:text-white"
                   title="Add to order"
                 >
@@ -234,26 +234,26 @@ export const Home: React.FC = () => {
                 </button>
               </div>
 
-              <div className="my-auto flex items-center justify-center py-2">
+              <Link to="/products/sony-wh-ch530-55-hour-battery-ai-call-bluetooth-czthsx" className="my-auto flex items-center justify-center py-2">
                 <img
-                  src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80"
-                  alt="ApexFit Watch"
+                  src="https://rukminim2.flixcart.com/image/612/612/xif0q/headphone/c/a/o/-original-imahst46g6zftjsd.jpeg?q=70"
+                  alt="Sony WH-CH530"
                   className="max-h-40 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
                 />
-              </div>
+              </Link>
 
               <div className="flex justify-between items-baseline font-mono-code text-xs text-[#120a06] uppercase pt-2 border-t border-[#ded8cb]">
-                <span className="font-bold tracking-wider truncate max-w-[130px]">APEXFIT TITANIUM</span>
-                <span className="font-bold">₹21,999</span>
+                <span className="font-bold tracking-wider truncate max-w-[130px]">SONY WH-CH530</span>
+                <span className="font-bold">₹4,490</span>
               </div>
             </div>
 
-            {/* Card 4: 4K OLED PORTABLE MONITOR */}
+            {/* Card 4: RGB GAMING COMBO */}
             <div className="group relative bg-[#f5f4ef] border border-[#120a06] p-5 flex flex-col justify-between aspect-square hover:shadow-xl transition-all">
               <div className="flex justify-between items-start font-mono-code text-xs text-[#7a6a58]">
                 <span className="font-bold text-[#120a06]">04</span>
                 <button
-                  onClick={(e) => handleQuickAdd('ultraslim-4k-oled', '4K OLED Display', e)}
+                  onClick={(e) => handleQuickAdd('gaming-keyboard', 'Ninja RGB Mechanical Combo', e)}
                   className="w-6 h-6 rounded-full border border-[#120a06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-[#120a06] hover:text-white"
                   title="Add to order"
                 >
@@ -261,17 +261,17 @@ export const Home: React.FC = () => {
                 </button>
               </div>
 
-              <div className="my-auto flex items-center justify-center py-2">
+              <Link to="/products/zebion-ninja-premium-rgb-backlit-gaming-keyboard-metal-body-mouse-with-6-button--dxxzvs" className="my-auto flex items-center justify-center py-2">
                 <img
-                  src="https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80"
-                  alt="4K OLED Display"
+                  src="https://rukminim2.flixcart.com/image/612/612/xif0q/computer-acc-combo/q/j/h/ninja-premium-rgb-backlit-gaming-keyboard-metal-body-mouse-with-original-imah94dc87cw8gf7.jpeg?q=70"
+                  alt="Ninja RGB Gaming Combo"
                   className="max-h-36 w-auto object-contain rounded-xl group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
                 />
-              </div>
+              </Link>
 
               <div className="flex justify-between items-baseline font-mono-code text-xs text-[#120a06] uppercase pt-2 border-t border-[#ded8cb]">
-                <span className="font-bold tracking-wider truncate max-w-[130px]">4K OLED DISPLAY</span>
-                <span className="font-bold">₹28,999</span>
+                <span className="font-bold tracking-wider truncate max-w-[130px]">RGB GAMING COMBO</span>
+                <span className="font-bold">₹949</span>
               </div>
             </div>
           </div>
