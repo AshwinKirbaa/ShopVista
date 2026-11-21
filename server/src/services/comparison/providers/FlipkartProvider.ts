@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { MarketplaceProvider } from '../MarketplaceProvider';
 import { NormalizedProduct, ProviderHealth } from '../types';
 import { ProductMatchingEngine } from '../ProductMatchingEngine';
@@ -143,17 +144,40 @@ export class FlipkartProvider implements MarketplaceProvider {
 
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
+    const configured = this.isConfigured();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isAvailable = configured || !isProduction;
+
     return {
       slug: this.slug,
       name: this.name,
       logo: this.logoUrl,
-      isConfigured: this.isConfigured(),
-      isAvailable: true,
+      isConfigured: configured,
+      isAvailable,
       latencyMs: Date.now() - start,
+      error: !configured && isProduction ? 'Flipkart Affiliate API credentials not configured in production' : undefined,
     };
   }
 
   async searchProducts(query: string): Promise<NormalizedProduct[]> {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // 1. If configured with live affiliate credentials, make live API call
+    if (this.isConfigured()) {
+      try {
+        return await this.fetchLiveFlipkart(query);
+      } catch (err: any) {
+        console.error('[FlipkartProvider] Live API request failed:', err.message);
+        if (isProduction) return [];
+      }
+    }
+
+    // 2. In production, unconfigured external provider must return empty results
+    if (isProduction) {
+      return [];
+    }
+
+    // 3. In development / demo mode: benchmarked hardware catalog with transparent Dev Feed label
     const cleanQ = ProductMatchingEngine.cleanText(query);
     const words = cleanQ.split(' ').filter(Boolean);
 
@@ -162,16 +186,72 @@ export class FlipkartProvider implements MarketplaceProvider {
       return words.every((w) => titleClean.includes(w)) || titleClean.includes(cleanQ);
     });
 
-    return matches.map((item) => this.normalizeItem(item));
+    return matches.map((item) => this.normalizeItem(item, 'DEVELOPMENT_FEED'));
   }
 
   async getProductDetails(externalId: string): Promise<NormalizedProduct | null> {
     const item = FLIPKART_CATALOG.find((p) => p.id === externalId);
     if (!item) return null;
-    return this.normalizeItem(item);
+    return this.normalizeItem(item, this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED');
   }
 
-  private normalizeItem(item: SeedItem): NormalizedProduct {
+  private async fetchLiveFlipkart(query: string): Promise<NormalizedProduct[]> {
+    const endpoint = `https://affiliate-api.flipkart.net/affiliate/1.0/search.json?query=${encodeURIComponent(query)}&resultCount=5`;
+    const res = await axios.get(endpoint, {
+      headers: {
+        'Fk-Affiliate-Id': process.env.FLIPKART_AFFILIATE_ID,
+        'Fk-Affiliate-Token': process.env.FLIPKART_AFFILIATE_TOKEN,
+      },
+      timeout: 3500,
+    });
+
+    const products = res.data?.products || [];
+    return products.map((prod: any) => {
+      const baseInfo = prod.productBaseInfoV1;
+      const title = baseInfo.title || query;
+      const price = baseInfo.flipkartSellingPrice?.amount || 0;
+      const mrp = baseInfo.maximumRetailPrice?.amount || price;
+      const specs = ProductMatchingEngine.extractSpecs(title);
+      const groupKey = ProductMatchingEngine.generateGroupKey(specs);
+
+      return {
+        externalId: baseInfo.productId,
+        marketplaceSlug: this.slug,
+        marketplaceName: this.name,
+        marketplaceLogo: this.logoUrl,
+        isInternal: false,
+        title,
+        brand: specs.brand,
+        model: specs.model,
+        specs,
+        groupKey,
+        imageUrl: baseInfo.imageUrls?.['400x400'] || '',
+        url: baseInfo.productUrl,
+        offer: {
+          marketplaceSlug: this.slug,
+          marketplaceName: this.name,
+          marketplaceLogo: this.logoUrl,
+          isInternal: false,
+          productTitle: title,
+          productUrl: baseInfo.productUrl,
+          mrp,
+          sellingPrice: price,
+          shippingCharge: 0,
+          finalPrice: price,
+          currency: 'INR',
+          inStock: baseInfo.inStock ?? true,
+          deliveryTime: '2-3 Days Flipkart Assured',
+          sellerName: 'Flipkart Assured Seller',
+          isVerified: true,
+          condition: specs.condition,
+          feedType: 'LIVE_API' as const,
+          lastUpdated: new Date().toISOString(),
+        },
+      };
+    });
+  }
+
+  private normalizeItem(item: SeedItem, feedType: 'LIVE_API' | 'DEVELOPMENT_FEED'): NormalizedProduct {
     const specs = ProductMatchingEngine.extractSpecs(item.title, item.rawCondition);
     const groupKey = ProductMatchingEngine.generateGroupKey(specs);
 
@@ -207,7 +287,7 @@ export class FlipkartProvider implements MarketplaceProvider {
         couponDetails: item.coupon,
         isVerified: true,
         condition: specs.condition,
-        feedType: this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED',
+        feedType,
         lastUpdated: new Date().toISOString(),
       },
     };

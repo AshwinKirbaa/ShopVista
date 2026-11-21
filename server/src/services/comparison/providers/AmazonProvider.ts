@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { MarketplaceProvider } from '../MarketplaceProvider';
 import { NormalizedProduct, ProviderHealth } from '../types';
 import { ProductMatchingEngine } from '../ProductMatchingEngine';
@@ -154,17 +155,40 @@ export class AmazonProvider implements MarketplaceProvider {
 
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
+    const configured = this.isConfigured();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isAvailable = configured || !isProduction;
+
     return {
       slug: this.slug,
       name: this.name,
       logo: this.logoUrl,
-      isConfigured: this.isConfigured(),
-      isAvailable: true,
+      isConfigured: configured,
+      isAvailable,
       latencyMs: Date.now() - start,
+      error: !configured && isProduction ? 'Amazon PA-API credentials not configured in production' : undefined,
     };
   }
 
   async searchProducts(query: string): Promise<NormalizedProduct[]> {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // 1. If authorized live credentials exist, execute live PA-API search
+    if (this.isConfigured()) {
+      try {
+        return await this.fetchLivePAAPI(query);
+      } catch (err: any) {
+        console.error('[AmazonProvider] Live API request failed:', err.message);
+        if (isProduction) return [];
+      }
+    }
+
+    // 2. In production, unconfigured external providers must never return misleading sample data
+    if (isProduction) {
+      return [];
+    }
+
+    // 3. In development / demonstration mode: benchmarked hardware catalog with transparent Dev Feed label
     const cleanQ = ProductMatchingEngine.cleanText(query);
     const words = cleanQ.split(' ').filter(Boolean);
 
@@ -173,16 +197,85 @@ export class AmazonProvider implements MarketplaceProvider {
       return words.every((w) => titleClean.includes(w)) || titleClean.includes(cleanQ);
     });
 
-    return matches.map((item) => this.normalizeItem(item));
+    return matches.map((item) => this.normalizeItem(item, 'DEVELOPMENT_FEED'));
   }
 
   async getProductDetails(externalId: string): Promise<NormalizedProduct | null> {
     const item = AMAZON_CATALOG.find((p) => p.id === externalId);
     if (!item) return null;
-    return this.normalizeItem(item);
+    return this.normalizeItem(item, this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED');
   }
 
-  private normalizeItem(item: SeedItem): NormalizedProduct {
+  private async fetchLivePAAPI(query: string): Promise<NormalizedProduct[]> {
+    const endpoint = 'https://webservices.amazon.in/paapi5/searchitems';
+    const partnerTag = process.env.AMAZON_ASSOCIATE_TAG || 'shopvista-21';
+    const payload = {
+      Keywords: query,
+      Resources: [
+        'ItemInfo.Title',
+        'Offers.Listings.Price',
+        'Offers.Listings.DeliveryInfo.IsPrimeEligible',
+        'Images.Primary.Large',
+      ],
+      PartnerTag: partnerTag,
+      PartnerType: 'Associates',
+      Marketplace: 'www.amazon.in',
+    };
+
+    const res = await axios.post(endpoint, payload, {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'x-amz-target': 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems',
+        'x-paapi-key': process.env.AMAZON_PAAPI_KEY,
+      },
+      timeout: 3500,
+    });
+
+    const items = res.data?.SearchResult?.Items || [];
+    return items.map((item: any) => {
+      const title = item.ItemInfo?.Title?.DisplayValue || query;
+      const price = item.Offers?.Listings?.[0]?.Price?.Amount || 0;
+      const specs = ProductMatchingEngine.extractSpecs(title);
+      const groupKey = ProductMatchingEngine.generateGroupKey(specs);
+
+      return {
+        externalId: item.ASIN,
+        marketplaceSlug: this.slug,
+        marketplaceName: this.name,
+        marketplaceLogo: this.logoUrl,
+        isInternal: false,
+        title,
+        brand: specs.brand,
+        model: specs.model,
+        specs,
+        groupKey,
+        imageUrl: item.Images?.Primary?.Large?.URL || '',
+        url: item.DetailPageURL || `https://www.amazon.in/dp/${item.ASIN}?tag=${partnerTag}`,
+        offer: {
+          marketplaceSlug: this.slug,
+          marketplaceName: this.name,
+          marketplaceLogo: this.logoUrl,
+          isInternal: false,
+          productTitle: title,
+          productUrl: item.DetailPageURL || `https://www.amazon.in/dp/${item.ASIN}?tag=${partnerTag}`,
+          mrp: price * 1.05,
+          sellingPrice: price,
+          shippingCharge: 0,
+          finalPrice: price,
+          currency: 'INR',
+          inStock: true,
+          deliveryTime: 'Prime Express Delivery',
+          sellerName: 'Amazon Retail Verified',
+          isVerified: true,
+          condition: specs.condition,
+          feedType: 'LIVE_API' as const,
+          lastUpdated: new Date().toISOString(),
+        },
+      };
+    });
+  }
+
+  private normalizeItem(item: SeedItem, feedType: 'LIVE_API' | 'DEVELOPMENT_FEED'): NormalizedProduct {
     const specs = ProductMatchingEngine.extractSpecs(item.title, item.rawCondition);
     const groupKey = ProductMatchingEngine.generateGroupKey(specs);
 
@@ -218,7 +311,7 @@ export class AmazonProvider implements MarketplaceProvider {
         couponDetails: item.coupon,
         isVerified: true,
         condition: specs.condition,
-        feedType: this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED',
+        feedType,
         lastUpdated: new Date().toISOString(),
       },
     };
