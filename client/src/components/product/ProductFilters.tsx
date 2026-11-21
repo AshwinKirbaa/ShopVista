@@ -75,22 +75,25 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           >
             All Categories
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => onSelectCategory(cat.id)}
-              className={`w-full text-left text-sm px-3 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-blue-50 text-blue-700 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              <span>{cat.name}</span>
-              {cat.productCount !== undefined && (
-                <span className="text-xs text-slate-400">({cat.productCount})</span>
-              )}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const isSelected = selectedCategory === cat.id || selectedCategory === cat.slug;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.slug || cat.id)}
+                className={`w-full text-left text-sm px-3 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-blue-50 text-blue-700 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span>{cat.name}</span>
+                {cat.productCount !== undefined && (
+                  <span className="text-xs text-slate-400">({cat.productCount})</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

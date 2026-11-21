@@ -32,9 +32,25 @@ export const getProducts = async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);
 
+    // Normalize categoryId filter: accept either UUID or slug (e.g. 'audio-studio-sound')
+    let resolvedCategoryId: string | undefined = undefined;
+    if (categoryId) {
+      const catStr = String(categoryId).trim();
+      const matchedCat = await prisma.category.findFirst({
+        where: {
+          OR: [{ id: catStr }, { slug: catStr }],
+        },
+      });
+      if (matchedCat) {
+        resolvedCategoryId = matchedCat.id;
+      } else {
+        resolvedCategoryId = catStr;
+      }
+    }
+
     const where: Prisma.ProductWhereInput = {
       isActive: true,
-      ...(categoryId && { categoryId: String(categoryId) }),
+      ...(resolvedCategoryId && { categoryId: resolvedCategoryId }),
       ...(isFeatured !== undefined && { isFeatured: String(isFeatured) === 'true' }),
       ...(search && {
         OR: [
@@ -81,7 +97,7 @@ export const getProducts = async (req: Request, res: Response) => {
       const candidates = await prisma.product.findMany({
         where: {
           isActive: true,
-          ...(categoryId && { categoryId: String(categoryId) }),
+          ...(resolvedCategoryId && { categoryId: resolvedCategoryId }),
           ...(isFeatured !== undefined && { isFeatured: String(isFeatured) === 'true' }),
           ...((minPrice || maxPrice) && {
             price: {
