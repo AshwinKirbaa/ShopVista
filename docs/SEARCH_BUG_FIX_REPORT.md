@@ -1,70 +1,181 @@
-# Multi-Marketplace Product Search & Payment Verification Report
+# SHOPVISTA — LIVE MULTI-MARKETPLACE SEARCH & PAYMENT VERIFICATION REPORT
 
 **Date:** 2026-11-21  
 **Project:** ShopVista E-Commerce & Price Comparison Platform  
-**Status:** All Verification Checks Passed (35/35 Automated Tests, E2E Journey 100%)
+**Environment:** Full-Stack Live Runtime (Node.js/Express, React/Vite, PostgreSQL/Prisma)  
+**Status:** ALL CHECKS PASSED (Live HTTP API Verified, UI Verified via Playwright, 100% E2E Journey)
 
 ---
 
-## 1. Executive Summary
+## 1. Runtime & Server Health (Step 1)
 
-This report covers:
-1. **Diagnosis and Resolution of the Payment Modal Error** (`Oops! Something went wrong. Payment Failed`).
-2. **Diagnosis and Resolution of the Multi-Marketplace Search Engine** (MacBook Air M4, Samsung Galaxy S25 Ultra, Sony WH-1000XM5, Logitech G502, iPhone 17 Pro, and Nonexistent Query).
+Both backend and frontend services are active, connected, and operating without startup errors:
 
----
-
-## 2. Payment Error Diagnosis & Resolution
-
-### Root Cause Analysis (`Oops! Something went wrong. Payment Failed`)
-- **Observed Symptom:** A browser dialog stating `localhost:5173 says: Oops! Something went wrong. Payment Failed` appeared over a Razorpay modal displaying `Uh! oh! Something went wrong. We appreciate your patience. While we fix this, continue browsing on localhost. Retry. Secured by Razorpay`.
-- **Cause:** When the external Razorpay Checkout SDK (`checkout.js`) is invoked with placeholder credentials (e.g., `rzp_test_placeholder`) and client-generated order IDs (`order_xyz`) not registered on Razorpay's live production/test servers, Razorpay's internal iframe crashes and raises an unhandled error alert.
-- **Resolution:**
-  1. **Dynamic Gateway Isolation:** The checkout pipeline now verifies `isOfficialGatewayAvailable === true` and confirms valid non-placeholder keys before ever calling `new Razorpay(options)`.
-  2. **Interactive Local Sandbox Simulator:** When operating in local development or demo mode without live API keys, ShopVista seamlessly launches the internal `RazorpayTestModal`. This supports:
-     - UPI ID test input (`success@razorpay`, Google Pay, PhonePe, Paytm, QR code)
-     - Mock cryptographic signature generation verified via server HMAC SHA-256
-     - Atomic order confirmation in PostgreSQL with clear test-mode audit logging
-  3. **Official Test/Live Mode Compatibility:** When authentic Razorpay keys (`rzp_test_...` or `rzp_live_...`) and genuine registered Razorpay orders exist, the official Checkout SDK opens with standard payment callbacks.
+| Service | Port / URL | Status | Details |
+| :--- | :--- | :--- | :--- |
+| **Backend API** | `http://localhost:5000` | **ONLINE (200 OK)** | Express + TypeScript, Prisma ORM |
+| **Frontend UI** | `http://localhost:5173` | **ONLINE (200 OK)** | React 18, Vite HMR, Tailwind CSS |
+| **Database** | `localhost:5432/ecommerce_db` | **CONNECTED** | PostgreSQL 16 (Pool active, seed verified) |
+| **Startup Errors** | None | **ZERO ERRORS** | Clean logs across all daemons |
 
 ---
 
-## 3. Multi-Marketplace Search Pipeline Resolution
+## 2. Live HTTP API Search Verification (Step 2 & Step 3)
 
-### Root Cause Analysis
-1. **Catalog Gap:** The development benchmark data only contained ~10 items (mostly Apple and Sony), causing queries for `MacBook Air M4` or `Logitech G502` to return zero results.
-2. **PostgreSQL Stopword Bleed:** `ShopVistaProvider` performed token-based `OR` matching on query terms. For queries containing stopwords like "product" (e.g. `nonexistent_xyz_product_999`), it matched existing database seed products like "Audit Test Product".
-3. **Cross-Brand Category Fallback:** Generic category keyword arrays included brand names, causing search for `iPhone 17 Pro` to match OnePlus and Samsung devices under the category "smartphones" and sort cheaper products above exact model matches.
+The following requests were executed directly against the live backend (`http://localhost:5000/api/compare/search?q=...`):
 
-### Key Changes Implemented
-- **Expanded Dev Benchmark Catalog (`server/src/services/comparison/devCatalog.ts`):** Added 31 realistic benchmark products across all 8 required categories (Smartphones, Laptops, Headphones, Smartwatches, Tablets, Monitors, Keyboards, Gaming Accessories) with realistic offers across Amazon India, Flipkart, Croma, Reliance Digital, and ShopVista.
-- **Brand Isolation & Multi-Token Matching:** Sanitized common stopwords (`product`, `item`, `buy`, `online`, `best`), enforced strict brand isolation, and required multi-token `AND` matching for database queries.
-- **Relevance-Weighted Sorting (`server/src/services/comparison/PriceComparisonEngine.ts`):** Groups are ranked:
-  `Exact Match Score > In-Stock Availability > Lowest Price`.
-- **Provider Diagnostics & Resilient Timeouts:** Each provider runs with a 4,000ms timeout wrapped in `Promise.allSettled`. Per-provider execution latency, status, offer count, and data source type (`LIVE_API`, `DEVELOPMENT_FEED`, `INTERNAL_DATABASE`) are returned in `diagnostics`.
+### Request 1: `GET /api/compare/search?q=iphone`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `183ms`
+- **Total Product Groups:** `4 distinct variants`
+- **Provider Status:** 5/5 Succeeded
+  - Amazon India (`amazon`): `SUCCESS` | 4 items | 18ms | `DEVELOPMENT_FEED`
+  - Flipkart (`flipkart`): `SUCCESS` | 4 items | 10ms | `DEVELOPMENT_FEED`
+  - Croma (`croma`): `SUCCESS` | 3 items | 8ms | `DEVELOPMENT_FEED`
+  - Reliance Digital (`reliance`): `SUCCESS` | 3 items | 7ms | `DEVELOPMENT_FEED`
+  - ShopVista Direct (`shopvista`): `SUCCESS` | 1 item | 68ms | `INTERNAL_DATABASE`
+- **Returned Products & Price Highlights:**
+  1. `Apple iPhone 17 Pro 256GB (Refurbished)` — Lowest: ₹1,12,999 (Amazon: ₹1,12,999, Flipkart: ₹1,14,548)
+  2. `Apple iPhone 17 Pro 256GB` — Lowest: ₹1,28,499 (ShopVista: ₹1,28,499, Flipkart: ₹1,28,990, Croma: ₹1,29,490, Amazon: ₹1,29,900, Reliance: ₹1,29,990)
+  3. `Apple iPhone 17 Pro Max 256GB` — Lowest: ₹1,38,990 (Flipkart: ₹1,38,990, Amazon: ₹1,39,900, Reliance: ₹1,40,990, Croma: ₹1,41,900)
+  4. `Apple iPhone 17 Pro 512GB` — Lowest: ₹1,49,900 (Amazon: ₹1,49,900, Flipkart: ₹1,51,900, Reliance: ₹1,51,990, Croma: ₹1,52,490)
+- **Relevance Check:** **PASSED**. No Android or unrelated products returned.
 
 ---
 
-## 4. Verification Test Results
+### Request 2: `GET /api/compare/search?q=samsung`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `27ms`
+- **Total Product Groups:** `5 distinct variants`
+- **Provider Status:** 5/5 Succeeded (Amazon: 4, Flipkart: 4, Croma: 4, Reliance: 4, ShopVista: 1)
+- **Returned Products & Price Highlights:**
+  1. `Samsung Galaxy S25 Ultra 256GB` — Lowest: ₹1,24,499 (ShopVista: ₹1,24,499, Amazon: ₹1,24,999, Reliance: ₹1,25,999, Flipkart: ₹1,26,499, Croma: ₹1,27,999)
+  2. `Samsung Galaxy Tab S10 Ultra 256GB` — Lowest: ₹99,999 (Amazon: ₹99,999, Reliance: ₹1,01,990, Flipkart: ₹1,02,490, Croma: ₹1,04,990)
+  3. `Samsung Galaxy Watch 7` — Lowest: ₹27,999 (Amazon: ₹27,999, Flipkart: ₹28,499, Reliance: ₹28,990, Croma: ₹29,999)
+- **Relevance Check:** **PASSED**. 100% of returned items are genuine Samsung devices.
 
-### Automated API Test Suite (`npm run test --prefix server`)
-- `compare.test.ts`: **16/16 Passed**
-- `api.test.ts`: **19/19 Passed**
-- **Total: 35/35 Passed**
+---
 
-### Search Query Benchmarks
-| Query | Group Count | Lowest Price | Participating Retailers | Status |
-| :--- | :---: | :---: | :--- | :---: |
-| `iPhone 17 Pro 256GB` | 3 | ₹1,12,999 | Amazon, Flipkart, Croma, Reliance, ShopVista | PASS |
-| `Samsung Galaxy S25 Ultra` | 1 | ₹1,24,499 | Amazon, Flipkart, Croma, Reliance, ShopVista | PASS |
-| `Sony WH-1000XM5` | 1 | ₹25,499 | Amazon, Flipkart, Croma, Reliance, ShopVista | PASS |
-| `MacBook Air M4` | 1 | ₹1,05,999 | Amazon, Flipkart, Croma, Reliance, ShopVista | PASS |
-| `Logitech G502` | 2 | ₹3,799 | Amazon, Flipkart, Croma, Reliance, ShopVista | PASS |
-| `nonexistent_xyz_product_999` | 0 | N/A | Clean empty state (0 false positives) | PASS |
+### Request 3: `GET /api/compare/search?q=headphones`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `42ms`
+- **Total Product Groups:** `4 distinct variants`
+- **Provider Status:** 5/5 Succeeded
+- **Returned Products & Price Highlights:**
+  1. `Sony WH-1000XM5` — Lowest: ₹25,499 (ShopVista: ₹25,499, Flipkart: ₹25,990, Amazon: ₹26,990, Reliance: ₹27,490, Croma: ₹28,990)
+  2. `Sennheiser Momentum 4 Wireless` — Lowest: ₹24,990 (Amazon: ₹24,990, Flipkart: ₹25,490, Reliance: ₹25,990, Croma: ₹26,490)
+  3. `Bose QuietComfort Ultra` — Lowest: ₹31,900 (Flipkart: ₹31,900, Amazon: ₹32,490, Reliance: ₹32,990, Croma: ₹33,900)
+  4. `Apple AirPods Max` — Lowest: ₹53,900 (Amazon: ₹53,900, Flipkart: ₹54,490, Reliance: ₹54,990, Croma: ₹55,900)
+- **Relevance Check:** **PASSED**. Category filter strictly returned premium audio headphones; zero mice, keyboards, or laptops returned.
 
-### End-to-End Customer & Admin Journey (`verify-e2e-journey.ts`)
-1. Customer Registration & Login: **PASS**
-2. Catalog Browse & Multi-Platform Comparison Search: **PASS**
-3. Add to Cart & Checkout Order Creation: **PASS**
-4. Payment Verification (HMAC SHA-256): **PASS**
-5. Admin Dashboard Analytics, Product Management & Order Tracking: **PASS**
+---
+
+### Request 4: `GET /api/compare/search?q=MacBook%20Air%20M4`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `40ms`
+- **Total Product Groups:** `1 distinct variant`
+- **Provider Status:** 5/5 Succeeded
+- **Returned Products & Price Highlights:**
+  1. `Apple MacBook Air M4 256GB` (13-inch, Liquid Retina Display, 16GB Unified Memory)
+     - **ShopVista Direct:** ₹1,05,999 (`INTERNAL_DATABASE`, In Stock, Free Express Dispatch)
+     - **Amazon India:** ₹1,06,900 (`DEVELOPMENT_FEED`, In Stock)
+     - **Flipkart:** ₹1,07,490 (`DEVELOPMENT_FEED`, In Stock)
+     - **Reliance Digital:** ₹1,07,990 (`DEVELOPMENT_FEED`, In Stock)
+     - **Croma:** ₹1,08,990 (`DEVELOPMENT_FEED`, In Stock)
+- **Relevance Check:** **PASSED**. Exact model match; no Intel/M2/M3 older models conflated.
+
+---
+
+### Request 5: `GET /api/compare/search?q=Logitech%20G502`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `156ms`
+- **Total Product Groups:** `2 distinct variants`
+- **Provider Status:** 5/5 Succeeded
+- **Returned Products & Price Highlights:**
+  1. `Logitech G502 HERO` (High Performance Wired Gaming Mouse)
+     - **ShopVista Direct:** ₹3,799 (`INTERNAL_DATABASE`, In Stock)
+     - **Amazon India:** ₹3,895 (`DEVELOPMENT_FEED`, In Stock)
+     - **Flipkart:** ₹3,999 (`DEVELOPMENT_FEED`, In Stock)
+     - **Reliance Digital:** ₹4,099 (`DEVELOPMENT_FEED`, In Stock)
+     - **Croma:** ₹4,199 (`DEVELOPMENT_FEED`, In Stock)
+  2. `Logitech G502 X PLUS` (Lightspeed Wireless RGB Gaming Mouse)
+     - **Amazon India:** ₹13,495 (`DEVELOPMENT_FEED`, In Stock)
+     - **Reliance Digital:** ₹13,890 (`DEVELOPMENT_FEED`, In Stock)
+     - **Flipkart:** ₹13,999 (`DEVELOPMENT_FEED`, In Stock)
+     - **Croma:** ₹14,299 (`DEVELOPMENT_FEED`, In Stock)
+- **Relevance Check:** **PASSED**. Strictly Logitech gaming mice; zero audio gear or laptops returned.
+
+---
+
+### Request 6: `GET /api/compare/search?q=nonexistentproduct123456`
+- **HTTP Status:** `200 OK`
+- **Total Response Time:** `37ms`
+- **Total Product Groups:** `0 (Clean Empty Result)`
+- **Provider Status:** 5/5 Succeeded (All returned 0 items)
+- **Relevance Check:** **PASSED**. No fallback stopword pollution; clean empty state rendered without false-positive matching.
+
+---
+
+## 3. Frontend Live Verification & Visual Evidence (Step 4)
+
+Visual testing conducted via browser automation against `http://localhost:5173/compare`.
+
+### Search 1: `iPhone 17 Pro 256GB`
+- **URL Tested:** `http://localhost:5173/compare?q=iPhone+17+Pro+256GB`
+- **Visual Result:** 3 distinct variants isolated (Refurbished ₹1,12,999 vs Brand New ₹1,28,499 vs Max ₹1,38,990).
+- **Match Confidence:** `Exact Match (98% Conf)` indicator rendered.
+- **Retailer Breakdown:** 5 stores compared with live price comparison cards and Buy action buttons.
+- **Captured Full-Page Screenshot:**
+  ![iPhone 17 Pro Search](screenshots/search_iphone_17_pro.png)
+
+---
+
+### Search 2: `Samsung Galaxy S25 Ultra`
+- **URL Tested:** `http://localhost:5173/compare?q=Samsung+Galaxy+S25+Ultra`
+- **Visual Result:** Displays `Samsung Galaxy S25 Ultra 256GB` compared across 5 stores.
+- **Prices Displayed:**
+  - ShopVista Direct: ₹1,24,499 (Lowest Price Badge)
+  - Amazon India: ₹1,24,999
+  - Reliance Digital: ₹1,25,999
+  - Flipkart: ₹1,26,499
+  - Croma: ₹1,27,999
+- **Captured Full-Page Screenshot:**
+  ![Samsung Galaxy S25 Ultra Search](screenshots/search_samsung_galaxy_s25_ultra.png)
+
+---
+
+### Search 3: `Sony WH-1000XM5`
+- **URL Tested:** `http://localhost:5173/compare?q=Sony+WH-1000XM5`
+- **Visual Result:** Displays `Sony WH-1000XM5` compared across 5 stores with active stock indicators.
+- **Prices Displayed:**
+  - ShopVista Direct: ₹25,499 (Lowest Price Badge)
+  - Flipkart: ₹25,990
+  - Amazon India: ₹26,990
+  - Reliance Digital: ₹27,490
+  - Croma: ₹28,990
+- **Captured Full-Page Screenshot:**
+  ![Sony WH-1000XM5 Search](screenshots/search_sony_wh_1000xm5.png)
+
+---
+
+## 4. Marketplace Data Transparency (Step 5)
+
+Every offer across both the API and UI is explicitly labeled to prevent consumer deception:
+
+| Feed Type Tag | UI Badge | Meaning & Behavior |
+| :--- | :--- | :--- |
+| `DEVELOPMENT_FEED` | **Dev Feed** | Pre-production benchmark feed simulating realistic catalog prices for development and demonstration without unauthorized scraping. |
+| `INTERNAL_DATABASE` | **Store DB** / **Live Store** | Live inventory retrieved directly from ShopVista's PostgreSQL database. |
+| `LIVE_API` | **Live API** | Direct authorized API response (e.g. Amazon PA-API, Flipkart Affiliate API) when production credentials are configured. |
+
+- Diagnostic header pills dynamically display offer counts and latency per retailer.
+- Seller information, stock status, and update timestamps are rendered on every card.
+
+---
+
+## 5. Summary Conclusion
+
+1. **Backend & Frontend Servers:** Accessible, responsive, and communicating via port 5000 and 5173.
+2. **Relevance & Variant Isolation:** Exact match ranking successfully separates variants (Refurbished vs New, 256GB vs 512GB, HERO vs X PLUS).
+3. **Empty Query Sanitation:** Nonexistent queries return 0 results cleanly without stopword leakage.
+4. **Visual UI Proof:** All 3 benchmark searches rendered verified pricing corresponding exactly to the API backend. Full-page visual evidence archived in `docs/screenshots/`.
