@@ -32,20 +32,11 @@ export const Home: React.FC = () => {
     if (product) {
       try {
         await addToCart(product, 1);
-        toast.success(`${product.name} added to bag!`, {
-          icon: '⚡',
-          style: {
-            background: '#0c0d14',
-            color: '#f5f4ef',
-            fontFamily: 'Space Mono',
-            fontSize: '12px',
-          },
-        });
       } catch {
-        toast.error('Failed to add to bag');
+        toast.error('Failed to add to cart');
       }
     } else {
-      toast.success(`${fallbackName} added to order!`, { icon: '⚡' });
+      toast.success(`${fallbackName} added to cart!`, { icon: '🛍️' });
     }
   };
 

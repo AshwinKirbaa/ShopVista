@@ -12,17 +12,8 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     e.preventDefault();
     try {
       await addToCart(product, 1);
-      toast.success(`${product.name} added to cart!`, {
-        icon: '🛍️',
-        style: {
-          background: '#0f172a',
-          color: '#f8fafc',
-          fontFamily: 'Space Mono',
-          fontSize: '12px',
-        },
-      });
     } catch {
-      toast.error('Failed to add to bag');
+      toast.error('Failed to add to cart');
     }
   };
 

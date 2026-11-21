@@ -98,9 +98,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         total,
       };
 
+      const shortTitle =
+        product.name.length > 40 ? product.name.slice(0, 37) + '...' : product.name;
+
       setCart(updatedCart);
       localStorage.setItem('guest_cart', JSON.stringify(updatedCart));
-      toast.success(`Added ${product.name} to cart`);
+      toast.success(`Added ${shortTitle} to cart`, {
+        id: `cart-${product.id}`,
+        icon: '🛍️',
+        style: {
+          background: '#0c0d14',
+          color: '#f5f4ef',
+          fontFamily: 'Space Mono',
+          fontSize: '12px',
+        },
+      });
       return true;
     }
 
@@ -108,7 +120,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await cartService.addItem(product.id, quantity);
       if (res.success) {
         setCart(res.data);
-        toast.success(`Added ${product.name} to cart`);
+        const shortTitle =
+          product.name.length > 40 ? product.name.slice(0, 37) + '...' : product.name;
+        toast.success(`Added ${shortTitle} to cart`, {
+          id: `cart-${product.id}`,
+          icon: '🛍️',
+          style: {
+            background: '#0c0d14',
+            color: '#f5f4ef',
+            fontFamily: 'Space Mono',
+            fontSize: '12px',
+          },
+        });
         return true;
       }
       return false;
