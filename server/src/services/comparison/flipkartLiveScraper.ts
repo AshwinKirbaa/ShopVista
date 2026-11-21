@@ -76,14 +76,20 @@ export function parseFlipkartLiveHtml(html: string): ScrapedFlipkartItem[] {
       continue;
     }
 
-    // Extract Selling Price: e.g. ₹89,100
-    // In Flipkart HTML: <div class="... DeU9vF ...">₹89,100</div> or <div class="... Nx9bqj ...">₹89,100</div>
-    const priceMatch = content.match(/₹\s*([\d,]+)/);
+    // Extract Selling Price: e.g. ₹89,100 or ₹24,989
+    // In Flipkart HTML: check content first, or look in adjacent HTML (grid layout up to 5000 chars)
+    let priceMatch = content.match(/₹\s*([\d,]+)/);
+    let nearby = '';
+    if (!priceMatch) {
+      nearby = html.slice(match.index, match.index + 5000);
+      priceMatch = nearby.match(/₹\s*([\d,]+)/);
+    }
     const sellingPrice = priceMatch ? parseInt(priceMatch[1].replace(/,/g, ''), 10) : 0;
     if (sellingPrice <= 0) continue;
 
-    // Extract MRP: often follows selling price e.g. ₹<!-- -->99,900 or ₹99,900
-    const mrpMatch = content.match(/₹<!-- -->\s*([\d,]+)/) || content.match(/₹\s*([\d,]+)[\s\S]*?₹\s*([\d,]+)/);
+    // Extract MRP
+    if (!nearby) nearby = html.slice(match.index, match.index + 5000);
+    const mrpMatch = nearby.match(/₹<!-- -->\s*([\d,]+)/) || nearby.match(/₹\s*([\d,]+)[\s\S]*?₹\s*([\d,]+)/);
     let mrp = sellingPrice;
     if (mrpMatch) {
       const parsedMrp = parseInt((mrpMatch[2] || mrpMatch[1]).replace(/,/g, ''), 10);
@@ -91,7 +97,7 @@ export function parseFlipkartLiveHtml(html: string): ScrapedFlipkartItem[] {
     }
 
     // Extract Rating: e.g. <div class="MKiFS6">4.6<img...
-    const ratingMatch = content.match(/<div class="[^"]*?(?:MKiFS6|XDXdAE)[^"]*?">([\d\.]+)/);
+    const ratingMatch = (content + nearby).match(/<div class="[^"]*?(?:MKiFS6|XDXdAE)[^"]*?">([\d\.]+)/);
     const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 4.5;
 
     // FSN / Product ID from url
