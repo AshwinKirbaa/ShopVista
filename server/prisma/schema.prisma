@@ -48,6 +48,8 @@ model User {
   cart      Cart?
   orders    Order[]
   reviews   Review[]
+  priceAlerts   PriceAlert[]
+  searchHistory SearchHistory[]
 
   @@index([email])
   @@map("users")
@@ -261,4 +263,182 @@ model Review {
   @@unique([userId, productId])
   @@index([productId])
   @@map("reviews")
+}
+
+// ==========================================
+// MULTI-PLATFORM PRICE COMPARISON ENGINE MODELS
+// ==========================================
+
+model Marketplace {
+  id           String   @id @default(cuid())
+  name         String   @unique // e.g. "Amazon India", "Flipkart", "Croma", "Reliance Digital", "ShopVista Store"
+  slug         String   @unique // "amazon-in", "flipkart", "croma", "reliance-digital", "shopvista"
+  logoUrl      String
+  websiteUrl   String
+  affiliateTag String?
+  isActive     Boolean  @default(true)
+  isInternal   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products     MarketplaceProduct[]
+  offers       ProductOffer[]
+  priceHistory PriceHistory[]
+
+  @@map("marketplaces")
+}
+
+model MarketplaceProduct {
+  id            String   @id @default(cuid())
+  marketplaceId String
+  externalId    String?  // ASIN / FSN / Retailer SKU
+  title         String
+  slug          String
+  brand         String
+  model         String?
+  gtin          String?  // UPC / EAN
+  storage       String?  // "128GB", "256GB", "512GB", "1TB"
+  ram           String?  // "8GB", "12GB", "16GB"
+  color         String?
+  condition     String   @default("NEW") // "NEW", "REFURBISHED", "OPEN_BOX"
+  url           String
+  imageUrl      String?
+  lastScrapedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  marketplace   Marketplace        @relation(fields: [marketplaceId], references: [id], onDelete: Cascade)
+  offers        ProductOffer[]
+  matchItems    ProductMatchItem[]
+  priceHistory  PriceHistory[]
+
+  @@index([marketplaceId])
+  @@index([brand])
+  @@index([model])
+  @@index([gtin])
+  @@index([storage])
+  @@map("marketplace_products")
+}
+
+model ProductOffer {
+  id                   String   @id @default(cuid())
+  marketplaceProductId String
+  marketplaceId        String
+  mrp                  Decimal  @db.Decimal(10, 2)
+  sellingPrice         Decimal  @db.Decimal(10, 2)
+  shippingCharge       Decimal  @default(0) @db.Decimal(10, 2)
+  finalPrice           Decimal  @db.Decimal(10, 2) // sellingPrice + shippingCharge
+  currency             String   @default("INR")
+  inStock              Boolean  @default(true)
+  deliveryTime         String?  // e.g. "Tomorrow by 11 AM", "2-3 business days"
+  sellerName           String?
+  sellerRating         Decimal? @db.Decimal(2, 1)
+  couponDetails        String?
+  isVerified           Boolean  @default(true)
+  condition            String   @default("NEW")
+  productUrl           String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  marketplaceProduct   MarketplaceProduct @relation(fields: [marketplaceProductId], references: [id], onDelete: Cascade)
+  marketplace          Marketplace        @relation(fields: [marketplaceId], references: [id], onDelete: Cascade)
+  priceHistory         PriceHistory[]
+
+  @@index([marketplaceProductId])
+  @@index([marketplaceId])
+  @@index([finalPrice])
+  @@index([inStock])
+  @@map("product_offers")
+}
+
+model ProductMatch {
+  id             String   @id @default(cuid())
+  groupKey       String   @unique // e.g. "apple-iphone-17-pro-256gb-new"
+  canonicalTitle String   // "Apple iPhone 17 Pro (256GB, Titanium)"
+  brand          String   // "Apple"
+  model          String   // "iPhone 17 Pro"
+  category       String   // "Smartphones"
+  variant        String   // "256GB"
+  color          String?
+  condition      String   @default("NEW")
+  imageUrl       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items          ProductMatchItem[]
+  priceAlerts    PriceAlert[]
+
+  @@index([brand])
+  @@index([model])
+  @@index([variant])
+  @@map("product_matches")
+}
+
+model ProductMatchItem {
+  id                   String   @id @default(cuid())
+  productMatchId       String
+  marketplaceProductId String
+  matchConfidence      Decimal  @db.Decimal(3, 2) // 1.00 for exact, 0.85 for high-confidence fuzzy
+  matchReason          String?
+
+  productMatch         ProductMatch       @relation(fields: [productMatchId], references: [id], onDelete: Cascade)
+  marketplaceProduct   MarketplaceProduct @relation(fields: [marketplaceProductId], references: [id], onDelete: Cascade)
+
+  @@unique([productMatchId, marketplaceProductId])
+  @@index([marketplaceProductId])
+  @@map("product_match_items")
+}
+
+model PriceHistory {
+  id                   String   @id @default(cuid())
+  offerId              String?
+  marketplaceProductId String
+  marketplaceId        String
+  price                Decimal  @db.Decimal(10, 2)
+  recordedAt           DateTime @default(now())
+
+  offer                ProductOffer?       @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  marketplaceProduct   MarketplaceProduct  @relation(fields: [marketplaceProductId], references: [id], onDelete: Cascade)
+  marketplace          Marketplace         @relation(fields: [marketplaceId], references: [id], onDelete: Cascade)
+
+  @@index([marketplaceProductId])
+  @@index([marketplaceId])
+  @@index([recordedAt])
+  @@map("price_history")
+}
+
+model PriceAlert {
+  id                String    @id @default(cuid())
+  userId            String
+  productMatchId    String
+  targetPrice       Decimal   @db.Decimal(10, 2)
+  initialPrice      Decimal   @db.Decimal(10, 2)
+  currentPrice      Decimal   @db.Decimal(10, 2)
+  notificationEmail String
+  isActive          Boolean   @default(true)
+  triggeredAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productMatch      ProductMatch @relation(fields: [productMatchId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productMatchId])
+  @@index([isActive])
+  @@map("price_alerts")
+}
+
+model SearchHistory {
+  id           String   @id @default(cuid())
+  userId       String?
+  query        String
+  resultsCount Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([query])
+  @@index([createdAt])
+  @@map("search_history")
 }
