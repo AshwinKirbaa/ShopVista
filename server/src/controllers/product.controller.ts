@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { sendSuccess, sendError } from '../utils/apiResponse';
 import { Prisma } from '@prisma/client';
+import { fetchFlipkartLive, parseFlipkartLiveHtml } from '../services/comparison/flipkartLiveScraper';
 
 const generateSlug = (name: string): string => {
   return (
