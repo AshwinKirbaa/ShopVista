@@ -44,11 +44,11 @@ export const Login: React.FC = () => {
 
   const handleDemoFill = (role: 'admin' | 'user') => {
     if (role === 'admin') {
-      setValue('email', 'admin@ecommerce.com');
-      setValue('password', 'Admin@123456');
+      setValue('email', 'admin@ecommerce.com', { shouldValidate: true, shouldDirty: true });
+      setValue('password', 'Admin@123456', { shouldValidate: true, shouldDirty: true });
     } else {
-      setValue('email', 'ashwin@example.com');
-      setValue('password', 'User@123456');
+      setValue('email', 'ashwin@example.com', { shouldValidate: true, shouldDirty: true });
+      setValue('password', 'User@123456', { shouldValidate: true, shouldDirty: true });
     }
   };
 
