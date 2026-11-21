@@ -50,12 +50,23 @@ export interface ComparisonGroup {
   };
 }
 
+export interface ProviderDiagnostic {
+  provider: string;
+  slug: string;
+  status: 'SUCCESS' | 'ERROR' | 'TIMEOUT' | 'UNCONFIGURED';
+  resultCount: number;
+  responseTimeMs: number;
+  feedType: 'LIVE_API' | 'DEVELOPMENT_FEED' | 'INTERNAL_DATABASE';
+  errorReason?: string;
+}
+
 export interface CompareSearchResponse {
   query: string;
   totalGroups: number;
   groups: ComparisonGroup[];
   providersSearched: number;
   providersSucceeded: number;
+  diagnostics?: ProviderDiagnostic[];
 }
 
 export interface ProviderHealth {

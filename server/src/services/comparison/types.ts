@@ -60,6 +60,16 @@ export interface ProviderHealth {
   error?: string;
 }
 
+export interface ProviderDiagnostic {
+  provider: string;
+  slug: string;
+  status: 'SUCCESS' | 'ERROR' | 'TIMEOUT' | 'UNCONFIGURED';
+  resultCount: number;
+  responseTimeMs: number;
+  feedType: 'LIVE_API' | 'DEVELOPMENT_FEED' | 'INTERNAL_DATABASE';
+  errorReason?: string;
+}
+
 export interface ComparisonGroup {
   groupKey: string;
   canonicalTitle: string;

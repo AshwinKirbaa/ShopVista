@@ -21,16 +21,17 @@ import {
   ComparisonGroup,
   NormalizedOffer,
   ProviderHealth,
+  ProviderDiagnostic,
 } from '../services/compare.service';
 import { PriceHistoryModal } from '../components/compare/PriceHistoryModal';
 import { PriceAlertModal } from '../components/compare/PriceAlertModal';
 
 const POPULAR_SEARCHES = [
   'iPhone 17 Pro 256GB',
-  'MacBook Pro M4 Pro',
+  'Samsung Galaxy S25 Ultra',
+  'MacBook Air M4',
   'Sony WH-1000XM5',
-  'Galaxy S25 Ultra 256GB',
-  'AirPods Pro 2',
+  'Logitech G502',
 ];
 
 export const CompareSearch: React.FC = () => {
@@ -41,6 +42,7 @@ export const CompareSearch: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [groups, setGroups] = useState<ComparisonGroup[]>([]);
   const [providers, setProviders] = useState<ProviderHealth[]>([]);
+  const [diagnostics, setDiagnostics] = useState<ProviderDiagnostic[]>([]);
   const [totalGroups, setTotalGroups] = useState(0);
 
   // Filters & Sorting state

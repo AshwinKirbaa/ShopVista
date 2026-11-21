@@ -9,6 +9,7 @@ import {
   ComparisonGroup,
   NormalizedOffer,
   ProviderHealth,
+  ProviderDiagnostic,
   PriceStatistics,
 } from './types';
 import { ProductMatchingEngine } from './ProductMatchingEngine';
@@ -70,6 +71,7 @@ export class PriceComparisonEngine {
     groups: ComparisonGroup[];
     providersSearched: number;
     providersSucceeded: number;
+    diagnostics: ProviderDiagnostic[];
   }> {
     const {
       query,
@@ -88,33 +90,67 @@ export class PriceComparisonEngine {
         groups: [],
         providersSearched: this.providers.length,
         providersSucceeded: 0,
+        diagnostics: [],
       };
     }
 
     const timeoutMs = 4000;
     let providersSucceeded = 0;
+    const diagnostics: ProviderDiagnostic[] = [];
 
-    // Concurrent fetching with individual timeouts
+    // Concurrent fetching with individual timeouts & per-provider diagnostics
     const fetchPromises = this.providers.map(async (provider) => {
+      const start = Date.now();
       const timeoutPromise = new Promise<NormalizedProduct[]>((_, reject) =>
         setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs)
       );
 
-      return Promise.race([provider.searchProducts(query), timeoutPromise]);
+      const feedType = provider.isInternal
+        ? 'INTERNAL_DATABASE'
+        : provider.isConfigured()
+        ? 'LIVE_API'
+        : 'DEVELOPMENT_FEED';
+
+      try {
+        const products = await Promise.race([provider.searchProducts(query), timeoutPromise]);
+        const responseTimeMs = Date.now() - start;
+
+        diagnostics.push({
+          provider: provider.name,
+          slug: provider.slug,
+          status: 'SUCCESS',
+          resultCount: products.length,
+          responseTimeMs,
+          feedType,
+        });
+
+        return products;
+      } catch (err: any) {
+        const responseTimeMs = Date.now() - start;
+        const isTimeout = err.message?.includes('Timeout');
+
+        diagnostics.push({
+          provider: provider.name,
+          slug: provider.slug,
+          status: isTimeout ? 'TIMEOUT' : 'ERROR',
+          resultCount: 0,
+          responseTimeMs,
+          feedType,
+          errorReason: isTimeout ? 'Request timed out after 4000ms' : 'Provider search failed',
+        });
+
+        console.warn(`[CompareEngine] Provider ${provider.name} failed:`, err.message);
+        return [];
+      }
     });
 
-    const settledResults = await Promise.allSettled(fetchPromises);
+    const results = await Promise.all(fetchPromises);
     const allProducts: NormalizedProduct[] = [];
 
-    settledResults.forEach((result, idx) => {
-      if (result.status === 'fulfilled') {
+    results.forEach((products) => {
+      if (products.length > 0) {
         providersSucceeded++;
-        allProducts.push(...result.value);
-      } else {
-        console.warn(
-          `[CompareEngine] Provider ${this.providers[idx].name} failed:`,
-          result.reason?.message || result.reason
-        );
+        allProducts.push(...products);
       }
     });
 
@@ -270,6 +306,7 @@ export class PriceComparisonEngine {
       groups: comparisonGroups,
       providersSearched: this.providers.length,
       providersSucceeded,
+      diagnostics,
     };
   }
 

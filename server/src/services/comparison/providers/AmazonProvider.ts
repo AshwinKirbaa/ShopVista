@@ -2,145 +2,7 @@ import axios from 'axios';
 import { MarketplaceProvider } from '../MarketplaceProvider';
 import { NormalizedProduct, ProviderHealth } from '../types';
 import { ProductMatchingEngine } from '../ProductMatchingEngine';
-
-interface SeedItem {
-  id: string;
-  title: string;
-  mrp: number;
-  sellingPrice: number;
-  shipping: number;
-  inStock: boolean;
-  delivery: string;
-  rating: number;
-  imageUrl: string;
-  url: string;
-  rawCondition?: string;
-  coupon?: string;
-}
-
-const AMAZON_CATALOG: SeedItem[] = [
-  {
-    id: 'B0CHX1W1XY',
-    title: 'Apple iPhone 17 Pro (256 GB) - Natural Titanium',
-    mrp: 134900,
-    sellingPrice: 129900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 11 AM with Prime',
-    rating: 4.8,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CHX1W1XY?tag=shopvista-21',
-  },
-  {
-    id: 'B0CHX2W2XZ',
-    title: 'Apple iPhone 17 Pro (512 GB) - Natural Titanium',
-    mrp: 154900,
-    sellingPrice: 149900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 11 AM with Prime',
-    rating: 4.8,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CHX2W2XZ?tag=shopvista-21',
-  },
-  {
-    id: 'B0CHX3W3PM',
-    title: 'Apple iPhone 17 Pro Max (256 GB) - Desert Titanium',
-    mrp: 144900,
-    sellingPrice: 139900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Free One-Day Delivery',
-    rating: 4.9,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CHX3W3PM?tag=shopvista-21',
-  },
-  {
-    id: 'B0CHX1RFB',
-    title: 'Apple iPhone 17 Pro (256 GB) - Natural Titanium (Refurbished - Excellent)',
-    mrp: 134900,
-    sellingPrice: 112999,
-    shipping: 0,
-    inStock: true,
-    delivery: '2-3 Business Days',
-    rating: 4.3,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CHX1RFB?tag=shopvista-21',
-    rawCondition: 'REFURBISHED',
-  },
-  {
-    id: 'B0CGV2X5KM',
-    title: 'Apple iPhone 16 Pro (128 GB) - Black Titanium',
-    mrp: 119900,
-    sellingPrice: 112900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 2 PM',
-    rating: 4.7,
-    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CGV2X5KM?tag=shopvista-21',
-  },
-  {
-    id: 'B0D9MBP14M4',
-    title: 'Apple 2024 MacBook Pro (14-inch, M4 Pro chip with 12-core CPU, 24GB Unified Memory, 512GB SSD) - Space Black',
-    mrp: 199900,
-    sellingPrice: 189900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 11 AM with Prime',
-    rating: 4.9,
-    imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0D9MBP14M4?tag=shopvista-21',
-  },
-  {
-    id: 'B09XS7M4S2',
-    title: 'Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones - Black',
-    mrp: 34990,
-    sellingPrice: 26990,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 9 PM',
-    rating: 4.6,
-    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B09XS7M4S2?tag=shopvista-21',
-  },
-  {
-    id: 'B0BSHN8921',
-    title: 'Samsung Galaxy S25 Ultra 5G (Titanium Gray, 12GB RAM, 256GB Storage)',
-    mrp: 134999,
-    sellingPrice: 124999,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 11 AM',
-    rating: 4.7,
-    imageUrl: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0BSHN8921?tag=shopvista-21',
-  },
-  {
-    id: 'B0BDHWDR12',
-    title: 'Apple AirPods Pro (2nd Gen) with MagSafe Case (USB-C)',
-    mrp: 24900,
-    sellingPrice: 21900,
-    shipping: 0,
-    inStock: true,
-    delivery: 'Tomorrow by 11 AM',
-    rating: 4.8,
-    imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0BDHWDR12?tag=shopvista-21',
-  },
-  {
-    id: 'B0CHXKB001',
-    title: 'ShopVista Studio Pro High-Fidelity ANC Wireless Headphones',
-    mrp: 24999,
-    sellingPrice: 22499,
-    shipping: 0,
-    inStock: true,
-    delivery: '2-Day Shipping',
-    rating: 4.8,
-    imageUrl: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
-    url: 'https://www.amazon.in/dp/B0CHXKB001?tag=shopvista-21',
-  },
-];
+import { DEV_BENCHMARK_CATALOG, matchCatalogQuery, DevCatalogItem } from '../devCatalog';
 
 export class AmazonProvider implements MarketplaceProvider {
   name = 'Amazon India';
@@ -188,22 +50,67 @@ export class AmazonProvider implements MarketplaceProvider {
       return [];
     }
 
-    // 3. In development / demonstration mode: benchmarked hardware catalog with transparent Dev Feed label
-    const cleanQ = ProductMatchingEngine.cleanText(query);
-    const words = cleanQ.split(' ').filter(Boolean);
+    // 3. In development / demonstration mode: comprehensive benchmark catalog with transparent Dev Feed label
+    const matchedItems = DEV_BENCHMARK_CATALOG.filter(
+      (item) => item.offers.amazon && matchCatalogQuery(item, query)
+    );
 
-    const matches = AMAZON_CATALOG.filter((item) => {
-      const titleClean = ProductMatchingEngine.cleanText(item.title);
-      return words.every((w) => titleClean.includes(w)) || titleClean.includes(cleanQ);
-    });
-
-    return matches.map((item) => this.normalizeItem(item, 'DEVELOPMENT_FEED'));
+    return matchedItems.map((item) => this.normalizeDevItem(item));
   }
 
   async getProductDetails(externalId: string): Promise<NormalizedProduct | null> {
-    const item = AMAZON_CATALOG.find((p) => p.id === externalId);
+    const rawId = externalId.replace(/-amz$/, '');
+    const item = DEV_BENCHMARK_CATALOG.find((p) => p.id === rawId && p.offers.amazon);
     if (!item) return null;
-    return this.normalizeItem(item, this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED');
+    return this.normalizeDevItem(item);
+  }
+
+  private normalizeDevItem(item: DevCatalogItem): NormalizedProduct {
+    const offer = item.offers.amazon!;
+    const specs = ProductMatchingEngine.extractSpecs(offer.title, item.condition, item.brand);
+    // Preserve canonical storage & ram if known in benchmark item
+    if (item.storage && !specs.storage) specs.storage = item.storage;
+    if (item.ram && !specs.ram) specs.ram = item.ram;
+    const groupKey = ProductMatchingEngine.generateGroupKey(specs);
+    const finalPrice = offer.sellingPrice + offer.shipping;
+
+    return {
+      externalId: `${item.id}-amz`,
+      marketplaceSlug: this.slug,
+      marketplaceName: this.name,
+      marketplaceLogo: this.logoUrl,
+      isInternal: false,
+      title: offer.title,
+      brand: specs.brand,
+      model: specs.model,
+      category: item.category,
+      specs,
+      groupKey,
+      imageUrl: item.imageUrl,
+      url: offer.url,
+      offer: {
+        id: `${item.id}-amz-offer`,
+        marketplaceSlug: this.slug,
+        marketplaceName: this.name,
+        marketplaceLogo: this.logoUrl,
+        isInternal: false,
+        productTitle: offer.title,
+        productUrl: offer.url,
+        mrp: offer.mrp,
+        sellingPrice: offer.sellingPrice,
+        shippingCharge: offer.shipping,
+        finalPrice,
+        currency: 'INR',
+        inStock: offer.inStock,
+        deliveryTime: offer.delivery,
+        sellerName: 'Appario Retail (Amazon Verified)',
+        sellerRating: offer.rating,
+        isVerified: true,
+        condition: item.condition,
+        feedType: 'DEVELOPMENT_FEED',
+        lastUpdated: new Date().toISOString(),
+      },
+    };
   }
 
   private async fetchLivePAAPI(query: string): Promise<NormalizedProduct[]> {
@@ -258,62 +165,21 @@ export class AmazonProvider implements MarketplaceProvider {
           isInternal: false,
           productTitle: title,
           productUrl: item.DetailPageURL || `https://www.amazon.in/dp/${item.ASIN}?tag=${partnerTag}`,
-          mrp: price * 1.05,
+          mrp: price,
           sellingPrice: price,
           shippingCharge: 0,
           finalPrice: price,
           currency: 'INR',
           inStock: true,
-          deliveryTime: 'Prime Express Delivery',
-          sellerName: 'Amazon Retail Verified',
+          deliveryTime: 'Prime 1-Day Delivery',
+          sellerName: 'Amazon Retail',
+          sellerRating: 4.8,
           isVerified: true,
-          condition: specs.condition,
-          feedType: 'LIVE_API' as const,
+          condition: 'NEW',
+          feedType: 'LIVE_API',
           lastUpdated: new Date().toISOString(),
         },
       };
     });
-  }
-
-  private normalizeItem(item: SeedItem, feedType: 'LIVE_API' | 'DEVELOPMENT_FEED'): NormalizedProduct {
-    const specs = ProductMatchingEngine.extractSpecs(item.title, item.rawCondition);
-    const groupKey = ProductMatchingEngine.generateGroupKey(specs);
-
-    return {
-      externalId: item.id,
-      marketplaceSlug: this.slug,
-      marketplaceName: this.name,
-      marketplaceLogo: this.logoUrl,
-      isInternal: false,
-      title: item.title,
-      brand: specs.brand,
-      model: specs.model,
-      specs,
-      groupKey,
-      imageUrl: item.imageUrl,
-      url: item.url,
-      offer: {
-        marketplaceSlug: this.slug,
-        marketplaceName: this.name,
-        marketplaceLogo: this.logoUrl,
-        isInternal: false,
-        productTitle: item.title,
-        productUrl: item.url,
-        mrp: item.mrp,
-        sellingPrice: item.sellingPrice,
-        shippingCharge: item.shipping,
-        finalPrice: item.sellingPrice + item.shipping,
-        currency: 'INR',
-        inStock: item.inStock,
-        deliveryTime: item.delivery,
-        sellerName: 'Appario Retail (Amazon Verified)',
-        sellerRating: 4.8,
-        couponDetails: item.coupon,
-        isVerified: true,
-        condition: specs.condition,
-        feedType,
-        lastUpdated: new Date().toISOString(),
-      },
-    };
   }
 }
