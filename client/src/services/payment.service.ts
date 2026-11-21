@@ -19,6 +19,7 @@ export interface PaymentOrderResponse {
   amount?: number;
   currency?: string;
   keyId?: string;
+  isOfficialGatewayAvailable?: boolean;
   paymentMethod?: string;
   customer?: {
     name: string;

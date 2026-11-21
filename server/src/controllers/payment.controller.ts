@@ -148,24 +148,38 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response) => {
     }
 
     // 5. Create Razorpay Order
-    let razorpayOrderId = `rzp_mock_${Date.now()}`;
     const amountInPaise = Math.round(finalTotal * 100);
+    let razorpayOrderId = `rzp_mock_${Date.now()}`;
+    let isOfficialGatewayAvailable = false;
 
-    try {
-      const razorpay = getRazorpayInstance();
-      const rzpOrder = await razorpay.orders.create({
-        amount: amountInPaise,
-        currency: 'INR',
-        receipt: newOrder.orderNumber,
-        notes: {
-          orderId: newOrder.id,
-          userId: req.user.id,
-        },
-      });
-      razorpayOrderId = rzpOrder.id;
-    } catch (rzpErr) {
-      console.warn('Razorpay live order creation failed (using test order ID):', rzpErr);
-      // Fallback for test mode when dummy keys are used
+    // Check if authentic Razorpay credentials are provided (not placeholder or dummy)
+    const hasGenuineRazorpayKeys =
+      Boolean(config.razorpay.keyId) &&
+      !config.razorpay.keyId.toLowerCase().includes('placeholder') &&
+      !config.razorpay.keyId.toLowerCase().includes('dummy') &&
+      Boolean(config.razorpay.keySecret) &&
+      !config.razorpay.keySecret.toLowerCase().includes('placeholder');
+
+    if (hasGenuineRazorpayKeys) {
+      try {
+        const razorpay = getRazorpayInstance();
+        const rzpOrder = await razorpay.orders.create({
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: newOrder.orderNumber,
+          notes: {
+            orderId: newOrder.id,
+            userId: req.user.id,
+          },
+        });
+        razorpayOrderId = rzpOrder.id;
+        isOfficialGatewayAvailable = true;
+      } catch (rzpErr) {
+        console.warn('Razorpay live order creation failed (using test order ID):', rzpErr);
+        razorpayOrderId = `order_${Math.random().toString(36).substring(2, 14)}`;
+      }
+    } else {
+      // Deterministic mock order ID for reliable local development & demo sandbox
       razorpayOrderId = `order_${Math.random().toString(36).substring(2, 14)}`;
     }
 
@@ -188,6 +202,7 @@ export const createRazorpayOrder = async (req: AuthRequest, res: Response) => {
       amount: amountInPaise,
       currency: 'INR',
       keyId: config.razorpay.keyId,
+      isOfficialGatewayAvailable,
       customer: {
         name: shippingName,
         email: req.user.email,

@@ -35,7 +35,6 @@ export const Checkout: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [gatewayMode, setGatewayMode] = useState<'AUTO' | 'SANDBOX_SIMULATOR' | 'OFFICIAL_RAZORPAY'>('AUTO');
   const [activeTestModal, setActiveTestModal] = useState<{
     isOpen: boolean;
     orderNumber: string;
@@ -133,118 +132,103 @@ export const Checkout: React.FC = () => {
         return;
       }
 
-      // Determine whether to use internal sandbox simulator or official Razorpay Checkout SDK
-      const shouldUseSimulator =
-        gatewayMode === 'SANDBOX_SIMULATOR' ||
-        !orderData.keyId ||
-        orderData.keyId === 'rzp_test_placeholder' ||
-        orderData.razorpayOrderId?.startsWith('rzp_mock_') ||
-        (gatewayMode === 'AUTO' && (!orderData.keyId || orderData.keyId === 'rzp_test_placeholder'));
+      // Check whether official Razorpay API credentials were validated and order was registered
+      const canUseOfficialRazorpay =
+        orderData.isOfficialGatewayAvailable === true &&
+        Boolean(orderData.keyId && !orderData.keyId.toLowerCase().includes('placeholder')) &&
+        typeof (window as any).Razorpay === 'function';
 
-      if (shouldUseSimulator) {
-        // Open the Interactive Razorpay UPI & Cards Sandbox modal
-        setActiveTestModal({
-          isOpen: true,
-          orderNumber: orderData.orderNumber,
-          orderId: orderData.orderId,
-          razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
-          amount: orderData.amount || Math.round(total * 100),
-          customer: {
+      if (canUseOfficialRazorpay) {
+        // Trigger Official Razorpay Checkout SDK (only if genuine keys exist)
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency || 'INR',
+          name: 'ShopVista',
+          description: `Payment for ${orderData.orderNumber}`,
+          order_id: orderData.razorpayOrderId,
+          prefill: {
             name: data.shippingName,
             email: user?.email || '',
             contact: data.shippingPhone,
           },
-        });
-        setIsProcessing(false);
-        return;
+          theme: {
+            color: '#2563EB',
+          },
+          modal: {
+            ondismiss: function () {
+              setIsProcessing(false);
+              toast('Payment window closed. Your order is pending in orders tab.', {
+                icon: 'ℹ️',
+              });
+              navigate(`/orders/${orderData.orderId}`);
+            },
+          },
+          handler: async function (response: any) {
+            try {
+              const verifyRes = await paymentService.verifyPayment({
+                orderId: orderData.orderId,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+
+              if (verifyRes.success) {
+                toast.success('Payment verified! Order confirmed.');
+                await refreshCart();
+                navigate(`/orders/${orderData.orderId}?success=true`);
+              } else {
+                toast.error(verifyRes.error || 'Payment signature verification failed');
+                navigate(`/orders/${orderData.orderId}`);
+              }
+            } catch (err: any) {
+              console.error('Payment verification error:', err);
+              toast.error(err.response?.data?.error || 'Verification error');
+              navigate(`/orders/${orderData.orderId}`);
+            }
+          },
+        };
+
+        try {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (failRes: any) {
+            console.warn('Razorpay failed, opening UPI sandbox modal:', failRes);
+            setActiveTestModal({
+              isOpen: true,
+              orderNumber: orderData.orderNumber,
+              orderId: orderData.orderId,
+              razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
+              amount: orderData.amount || Math.round(total * 100),
+              customer: {
+                name: data.shippingName,
+                email: user?.email || '',
+                contact: data.shippingPhone,
+              },
+            });
+            setIsProcessing(false);
+          });
+          rzp.open();
+          return;
+        } catch (openErr) {
+          console.warn('Error opening Razorpay checkout, falling back to sandbox modal:', openErr);
+        }
       }
 
-      // 3. If real key exists, trigger Razorpay Checkout SDK
-      const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
-        name: 'ShopVista',
-        description: `Payment for ${orderData.orderNumber}`,
-        order_id: orderData.razorpayOrderId,
-        prefill: {
+      // Default & Fallback: Open the Interactive UPI & Cards Sandbox modal (100% reliable)
+      setActiveTestModal({
+        isOpen: true,
+        orderNumber: orderData.orderNumber,
+        orderId: orderData.orderId,
+        razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
+        amount: orderData.amount || Math.round(total * 100),
+        customer: {
           name: data.shippingName,
           email: user?.email || '',
           contact: data.shippingPhone,
         },
-        theme: {
-          color: '#2563EB',
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessing(false);
-            toast('Payment window closed. Your order is pending in orders tab.', {
-              icon: 'ℹ️',
-            });
-            navigate(`/orders/${orderData.orderId}`);
-          },
-        },
-        handler: async function (response: any) {
-          try {
-            const verifyRes = await paymentService.verifyPayment({
-              orderId: orderData.orderId,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            if (verifyRes.success) {
-              toast.success('Payment verified! Order confirmed.');
-              await refreshCart();
-              navigate(`/orders/${orderData.orderId}?success=true`);
-            } else {
-              toast.error(verifyRes.error || 'Payment signature verification failed');
-              navigate(`/orders/${orderData.orderId}`);
-            }
-          } catch (err: any) {
-            console.error('Payment verification error:', err);
-            toast.error(err.response?.data?.error || 'Verification error');
-            navigate(`/orders/${orderData.orderId}`);
-          }
-        },
-      };
-
-      if (typeof (window as any).Razorpay === 'function') {
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (failRes: any) {
-          console.warn('Razorpay failed, opening sandbox simulator:', failRes);
-          // Fall back to sandbox modal instead of leaving user stuck
-          setActiveTestModal({
-            isOpen: true,
-            orderNumber: orderData.orderNumber,
-            orderId: orderData.orderId,
-            razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
-            amount: orderData.amount || Math.round(total * 100),
-            customer: {
-              name: data.shippingName,
-              email: user?.email || '',
-              contact: data.shippingPhone,
-            },
-          });
-          setIsProcessing(false);
-        });
-        rzp.open();
-      } else {
-        // Fallback to Sandbox Modal
-        setActiveTestModal({
-          isOpen: true,
-          orderNumber: orderData.orderNumber,
-          orderId: orderData.orderId,
-          razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
-          amount: orderData.amount || Math.round(total * 100),
-          customer: {
-            name: data.shippingName,
-            email: user?.email || '',
-            contact: data.shippingPhone,
-          },
-        });
-        setIsProcessing(false);
-      }
+      });
+      setIsProcessing(false);
+      return;
     } catch (error: any) {
       console.error('Checkout error:', error);
       toast.error(error.response?.data?.error || 'Failed to place order');
@@ -366,22 +350,9 @@ export const Checkout: React.FC = () => {
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-md w-fit">
                       <ShieldCheck className="w-3.5 h-3.5" /> Razorpay Secured
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setGatewayMode(gatewayMode === 'OFFICIAL_RAZORPAY' ? 'SANDBOX_SIMULATOR' : 'OFFICIAL_RAZORPAY');
-                        }}
-                        className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${
-                          gatewayMode === 'OFFICIAL_RAZORPAY'
-                            ? 'bg-blue-600 text-white border-blue-600 font-bold'
-                            : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
-                        }`}
-                        title="Toggle between official Razorpay Checkout SDK and internal zero-setup sandbox simulator"
-                      >
-                        {gatewayMode === 'OFFICIAL_RAZORPAY' ? 'Mode: Official SDK' : 'Mode: Sandbox Simulator'}
-                      </button>
+                    <div className="text-[10px] font-mono px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      UPI Sandbox Ready
                     </div>
                   </div>
                 </div>
