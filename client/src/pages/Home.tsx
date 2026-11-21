@@ -87,14 +87,22 @@ export const Home: React.FC = () => {
                 PREMIUM CRAFTED DEVICES AND THOUGHTFULLY ENGINEERED ESSENTIALS TO ELEVATE YOUR DAILY FLOW.
               </p>
 
-              {/* Primary Underlined CTA */}
-              <div className="pt-2">
+              {/* Primary Underlined CTA & Multi-Retailer Compare */}
+              <div className="pt-2 flex flex-wrap items-center gap-5">
                 <Link
                   to="/products"
                   className="inline-flex items-center gap-2 text-xs font-mono-code font-bold uppercase tracking-wider text-white border-b-2 border-white pb-1 hover:text-[#60a5fa] hover:border-[#60a5fa] transition-colors"
                 >
                   <span>EXPLORE CATALOG</span>
                   <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                </Link>
+
+                <Link
+                  to="/compare"
+                  className="inline-flex items-center gap-2 text-xs font-mono-code font-bold uppercase tracking-wider text-blue-400 border border-blue-500/30 px-3.5 py-1.5 rounded-full hover:bg-blue-500/10 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>COMPARE 5 RETAILERS</span>
                 </Link>
               </div>
             </div>
