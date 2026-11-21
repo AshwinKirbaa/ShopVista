@@ -34,7 +34,7 @@ const CROMA_CATALOG: SeedItem[] = [
     mrp: 154900,
     sellingPrice: 152490,
     shipping: 0,
-    inStock: false, // Out of stock on Croma to test stock logic!
+    inStock: false,
     delivery: 'Currently Out of Stock',
     rating: 4.8,
     imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
@@ -110,22 +110,34 @@ export class CromaProvider implements MarketplaceProvider {
   isInternal = false;
 
   isConfigured(): boolean {
-    return false; // Uses authorized dev adapter
+    return Boolean(process.env.CROMA_API_KEY);
   }
 
   async healthCheck(): Promise<ProviderHealth> {
     const start = Date.now();
+    const configured = this.isConfigured();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isAvailable = configured || !isProduction;
+
     return {
       slug: this.slug,
       name: this.name,
       logo: this.logoUrl,
-      isConfigured: this.isConfigured(),
-      isAvailable: true,
+      isConfigured: configured,
+      isAvailable,
       latencyMs: Date.now() - start,
+      error: !configured && isProduction ? 'Croma partner API credentials not configured in production' : undefined,
     };
   }
 
   async searchProducts(query: string): Promise<NormalizedProduct[]> {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // In production, unconfigured external provider must not return sample data
+    if (!this.isConfigured() && isProduction) {
+      return [];
+    }
+
     const cleanQ = ProductMatchingEngine.cleanText(query);
     const words = cleanQ.split(' ').filter(Boolean);
 
