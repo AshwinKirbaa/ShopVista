@@ -6,6 +6,8 @@ export interface ProductQueryParams {
   categoryId?: string;
   minPrice?: number;
   maxPrice?: number;
+  minRating?: number;
+  brand?: string;
   sort?: string;
   page?: number;
   limit?: number;

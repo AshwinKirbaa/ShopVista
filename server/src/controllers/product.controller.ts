@@ -28,6 +28,8 @@ export const getProducts = async (req: Request, res: Response) => {
       page = 1,
       limit = 12,
       isFeatured,
+      minRating,
+      brand,
     } = req.query as any;
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -65,6 +67,12 @@ export const getProducts = async (req: Request, res: Response) => {
           ...(minPrice ? { gte: new Prisma.Decimal(Number(minPrice)) } : {}),
           ...(maxPrice ? { lte: new Prisma.Decimal(Number(maxPrice)) } : {}),
         },
+      }),
+      ...(minRating && {
+        rating: { gte: Number(minRating) },
+      }),
+      ...(brand && {
+        name: { contains: String(brand), mode: 'insensitive' },
       }),
     };
 

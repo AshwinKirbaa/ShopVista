@@ -12,11 +12,11 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
     e.preventDefault();
     try {
       await addToCart(product, 1);
-      toast.success(`${product.name} added to bag!`, {
-        icon: '☕',
+      toast.success(`${product.name} added to cart!`, {
+        icon: '🛍️',
         style: {
-          background: '#120a06',
-          color: '#f5f4ef',
+          background: '#0f172a',
+          color: '#f8fafc',
           fontFamily: 'Space Mono',
           fontSize: '12px',
         },
@@ -39,10 +39,14 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         className="relative aspect-square overflow-hidden bg-[#eeebe2] p-6 flex items-center justify-center"
       >
         <img
-          src={product.images[0] || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600'}
+          src={product.images[0] || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600'}
           alt={product.name}
           className="max-h-52 w-auto object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
           loading="lazy"
+          onError={(e) => {
+            // Elegant tech fallback if image fails to load
+            (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="1.5"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>';
+          }}
         />
 
         {/* Discount Badge */}

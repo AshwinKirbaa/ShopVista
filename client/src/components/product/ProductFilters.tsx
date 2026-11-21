@@ -1,6 +1,6 @@
 import React from 'react';
 import { Category } from '../../types';
-import { SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { SlidersHorizontal, RotateCcw, Star } from 'lucide-react';
 
 interface ProductFiltersProps {
   categories: Category[];
@@ -9,10 +9,16 @@ interface ProductFiltersProps {
   minPrice: string;
   maxPrice: string;
   onPriceChange: (min: string, max: string) => void;
+  selectedBrand?: string;
+  onSelectBrand?: (brand: string) => void;
+  minRating?: string;
+  onRatingChange?: (rating: string) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
   onReset: () => void;
 }
+
+const POPULAR_BRANDS = ['Apple', 'Samsung', 'Sony', 'Lenovo', 'Logitech', 'Acer', 'HP', 'Dell', 'OnePlus'];
 
 export const ProductFilters: React.FC<ProductFiltersProps> = ({
   categories,
@@ -21,6 +27,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   minPrice,
   maxPrice,
   onPriceChange,
+  selectedBrand = '',
+  onSelectBrand,
+  minRating = '',
+  onRatingChange,
   sortBy,
   onSortChange,
   onReset,
@@ -96,6 +106,68 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           })}
         </div>
       </div>
+
+      {/* Brand Filter */}
+      {onSelectBrand && (
+        <div>
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            Brand
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => onSelectBrand('')}
+              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                selectedBrand === ''
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              All
+            </button>
+            {POPULAR_BRANDS.map((brand) => (
+              <button
+                key={brand}
+                onClick={() => onSelectBrand(selectedBrand === brand ? '' : brand)}
+                className={`text-xs px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
+                  selectedBrand.toLowerCase() === brand.toLowerCase()
+                    ? 'bg-blue-600 text-white border-blue-600 font-semibold'
+                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Customer Rating */}
+      {onRatingChange && (
+        <div>
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            Customer Rating
+          </label>
+          <div className="flex flex-col gap-1">
+            {[
+              { val: '4', label: '4★ & above' },
+              { val: '3', label: '3★ & above' },
+            ].map((r) => (
+              <button
+                key={r.val}
+                onClick={() => onRatingChange(minRating === r.val ? '' : r.val)}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl transition-colors cursor-pointer ${
+                  minRating === r.val
+                    ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{r.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Price Range */}
       <div>

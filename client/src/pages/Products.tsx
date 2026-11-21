@@ -22,6 +22,8 @@ export const Products: React.FC = () => {
   const categoryId = searchParams.get('category') || '';
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
+  const brand = searchParams.get('brand') || '';
+  const minRating = searchParams.get('minRating') || '';
   const sort = searchParams.get('sort') || 'newest';
   const page = parseInt(searchParams.get('page') || '1', 10);
 
@@ -40,6 +42,8 @@ export const Products: React.FC = () => {
           categoryId: categoryId || undefined,
           minPrice: minPrice ? Number(minPrice) : undefined,
           maxPrice: maxPrice ? Number(maxPrice) : undefined,
+          brand: brand || undefined,
+          minRating: minRating ? Number(minRating) : undefined,
           sort,
           page,
           limit: 12,
@@ -61,7 +65,7 @@ export const Products: React.FC = () => {
 
     fetchCatalog();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [search, categoryId, minPrice, maxPrice, sort, page]);
+  }, [search, categoryId, minPrice, maxPrice, brand, minRating, sort, page]);
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const newParams = new URLSearchParams(searchParams);
@@ -120,6 +124,10 @@ export const Products: React.FC = () => {
             minPrice={minPrice}
             maxPrice={maxPrice}
             onPriceChange={(min, max) => updateFilters({ minPrice: min || null, maxPrice: max || null })}
+            selectedBrand={brand}
+            onSelectBrand={(b) => updateFilters({ brand: b || null })}
+            minRating={minRating}
+            onRatingChange={(r) => updateFilters({ minRating: r || null })}
             sortBy={sort}
             onSortChange={(s) => updateFilters({ sort: s })}
             onReset={handleReset}

@@ -57,13 +57,13 @@ export const Login: React.FC = () => {
       <div className="w-full max-w-md bg-white rounded-3xl border border-[#ded8cb] shadow-xl p-8 space-y-6">
         <div className="text-center space-y-2">
           <Link to="/" className="inline-block font-syne text-3xl font-extrabold text-[#120a06] mb-1 lowercase">
-            brewns<span className="text-xs text-[#d4a373] align-super">®</span>
+            shopvista<span className="text-xs text-[#2563eb] align-super">®</span>
           </Link>
           <h2 className="text-xl font-extrabold text-[#120a06] font-syne uppercase tracking-tight">
-            Sign In to brewns®
+            Sign In to ShopVista®
           </h2>
           <p className="text-xs text-[#7a6857]">
-            Access your orders, saved addresses, and morning rituals
+            Access live price intelligence, track orders, and monitor deals
           </p>
         </div>
 
