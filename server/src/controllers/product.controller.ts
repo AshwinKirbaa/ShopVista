@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma';
 import { sendSuccess, sendError } from '../utils/apiResponse';
 import { Prisma } from '@prisma/client';
 import { fetchFlipkartLive, parseFlipkartLiveHtml } from '../services/comparison/flipkartLiveScraper';
+import { SemanticSearchEngine } from '../services/SemanticSearchEngine';
 
 const generateSlug = (name: string): string => {
   return (
@@ -70,75 +71,104 @@ export const getProducts = async (req: Request, res: Response) => {
       }),
     ]);
 
-    // On-Demand Live Fetch: If searching for a product that isn't yet in the database,
-    // fetch live listings from Flipkart on-the-fly and automatically ingest them!
-    if (total === 0 && search && String(search).trim().length >= 3 && !categoryId && !minPrice && !maxPrice) {
-      try {
-        const queryStr = String(search).trim();
-        const liveHtml = await fetchFlipkartLive(queryStr);
-        const liveItems = parseFlipkartLiveHtml(liveHtml);
+    // 2. SEMANTIC SEARCH & RE-RANKING:
+    // If a search query is provided, evaluate candidate products using semantic concepts,
+    // synonyms (e.g. "phone" -> iPhone, Galaxy; "laptop" -> MacBook), and stem relevance.
+    if (search && String(search).trim().length >= 2) {
+      const queryStr = String(search).trim();
 
-        if (liveItems && liveItems.length > 0) {
-          // Find or create category
-          let category = await prisma.category.findFirst({
-            where: { slug: 'electronics-audio' },
-          });
-          if (!category) {
-            category = await prisma.category.findFirst();
-          }
+      // Retrieve all active candidate products to perform semantic matching
+      const candidates = await prisma.product.findMany({
+        where: {
+          isActive: true,
+          ...(categoryId && { categoryId: String(categoryId) }),
+          ...(isFeatured !== undefined && { isFeatured: String(isFeatured) === 'true' }),
+          ...((minPrice || maxPrice) && {
+            price: {
+              ...(minPrice ? { gte: new Prisma.Decimal(Number(minPrice)) } : {}),
+              ...(maxPrice ? { lte: new Prisma.Decimal(Number(maxPrice)) } : {}),
+            },
+          }),
+        },
+        include: {
+          category: {
+            select: { id: true, name: true, slug: true },
+          },
+        },
+      });
 
-          if (category) {
-            for (const item of liveItems.slice(0, 6)) {
-              const cleanSlug = item.title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)+/g, '')
-                .slice(0, 80) + `-${item.id.slice(-6).toLowerCase()}`;
+      const semanticRanked = SemanticSearchEngine.rankProducts(queryStr, candidates, 0.15);
 
-              const existing = await prisma.product.findFirst({
-                where: { OR: [{ sku: `LIVE-FK-${item.id}` }, { slug: cleanSlug }] },
-              });
+      if (semanticRanked.length > 0) {
+        total = semanticRanked.length;
+        products = semanticRanked.slice(skip, skip + take).map((r) => r.item);
+      } else {
+        // Fallback: If no products in DB match semantically, fetch live Flipkart on-demand
+        try {
+          const liveHtml = await fetchFlipkartLive(queryStr);
+          const liveItems = parseFlipkartLiveHtml(liveHtml);
 
-              if (!existing) {
-                await prisma.product.create({
-                  data: {
-                    name: item.title,
-                    slug: cleanSlug,
-                    description: `Authentic ${item.title} sourced directly with live pricing of ₹${item.sellingPrice.toLocaleString('en-IN')}. Features genuine factory specifications, manufacturer warranty, and verified listing on Flipkart India (${item.url}).`,
-                    price: new Prisma.Decimal(item.sellingPrice.toString()),
-                    comparePrice: new Prisma.Decimal(item.mrp.toString()),
-                    sku: `LIVE-FK-${item.id}`,
-                    stock: 25,
-                    images: [item.imageUrl],
-                    categoryId: category.id,
-                    isFeatured: true,
-                    rating: new Prisma.Decimal((item.rating || 4.5).toFixed(1)),
-                    reviewCount: Math.floor(Math.random() * 200) + 40,
-                    isActive: true,
-                  },
-                });
-              }
+          if (liveItems && liveItems.length > 0) {
+            let category = await prisma.category.findFirst({
+              where: { slug: 'electronics-audio' },
+            });
+            if (!category) {
+              category = await prisma.category.findFirst();
             }
 
-            // Re-query database after ingestion
-            [total, products] = await Promise.all([
-              prisma.product.count({ where }),
-              prisma.product.findMany({
-                where,
+            if (category) {
+              for (const item of liveItems.slice(0, 8)) {
+                const cleanSlug = item.title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)+/g, '')
+                  .slice(0, 80) + `-${item.id.slice(-6).toLowerCase()}`;
+
+                const existing = await prisma.product.findFirst({
+                  where: { OR: [{ sku: `LIVE-FK-${item.id}` }, { slug: cleanSlug }] },
+                });
+
+                if (!existing) {
+                  await prisma.product.create({
+                    data: {
+                      name: item.title,
+                      slug: cleanSlug,
+                      description: `Authentic ${item.title} with live pricing of ₹${item.sellingPrice.toLocaleString('en-IN')}. Features genuine factory specifications and verified listing on Flipkart India.`,
+                      price: new Prisma.Decimal(item.sellingPrice.toString()),
+                      comparePrice: new Prisma.Decimal(item.mrp.toString()),
+                      sku: `LIVE-FK-${item.id}`,
+                      stock: 25,
+                      images: [item.imageUrl],
+                      categoryId: category.id,
+                      isFeatured: true,
+                      rating: new Prisma.Decimal((item.rating || 4.5).toFixed(1)),
+                      reviewCount: Math.floor(Math.random() * 200) + 40,
+                      isActive: true,
+                    },
+                  });
+                }
+              }
+
+              // Re-run semantic search after ingestion
+              const freshCandidates = await prisma.product.findMany({
+                where: { isActive: true },
                 include: {
                   category: {
                     select: { id: true, name: true, slug: true },
                   },
                 },
-                orderBy,
-                skip,
-                take,
-              }),
-            ]);
+              });
+
+              const reRanked = SemanticSearchEngine.rankProducts(queryStr, freshCandidates, 0.15);
+              if (reRanked.length > 0) {
+                total = reRanked.length;
+                products = reRanked.slice(skip, skip + take).map((r) => r.item);
+              }
+            }
           }
+        } catch (fetchErr: any) {
+          console.warn('Semantic on-demand fetch failed:', fetchErr.message);
         }
-      } catch (liveFetchErr: any) {
-        console.warn('Live product on-demand fetch failed:', liveFetchErr.message);
       }
     }
 
