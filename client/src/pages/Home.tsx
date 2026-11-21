@@ -45,7 +45,7 @@ export const Home: React.FC = () => {
       {/* =========================================================================
           HERO SECTION (Midnight Luxury Canvas with Hardware Showcase)
           ========================================================================= */}
-      <section className="relative bg-[#0a0b12] text-[#f5f4ef] pt-8 pb-14 border-b border-[#1f2333]">
+      <section className="relative bg-[#0a0b12] text-[#f5f4ef] pt-8 pb-14 border-b border-[#1f2333] overflow-hidden">
         {/* Subtle radial ambient warmth */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[550px] bg-blue-900/25 rounded-full blur-[160px] pointer-events-none" />
 
@@ -60,14 +60,14 @@ export const Home: React.FC = () => {
 
               {/* Main Editorial Headline */}
               <div className="space-y-0 select-none">
-                <h1 className="font-syne text-6xl sm:text-7xl md:text-8xl lg:text-[92px] font-extrabold uppercase tracking-tight text-white leading-[0.88]">
+                <h1 className="font-syne text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-extrabold uppercase tracking-tight text-white leading-[0.92]">
                   HARDWARE
                 </h1>
-                <div className="flex items-baseline gap-4 flex-wrap mt-1">
-                  <h2 className="font-syne text-5xl sm:text-6xl md:text-7xl lg:text-[84px] font-extrabold uppercase tracking-tight text-white leading-[0.88]">
+                <div className="flex items-baseline gap-4 flex-wrap mt-2">
+                  <h2 className="font-syne text-4xl sm:text-5xl md:text-6xl lg:text-[68px] xl:text-[76px] font-extrabold uppercase tracking-tight text-white leading-[0.92]">
                     FOR YOUR
                   </h2>
-                  <span className="font-script text-6xl sm:text-7xl md:text-8xl lg:text-[96px] text-white lowercase -rotate-3 select-none">
+                  <span className="font-script text-5xl sm:text-6xl md:text-7xl lg:text-[80px] text-white lowercase -rotate-3 select-none">
                     everyday
                   </span>
                 </div>
