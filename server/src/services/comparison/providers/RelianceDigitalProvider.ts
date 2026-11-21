@@ -154,6 +154,7 @@ export class RelianceDigitalProvider implements MarketplaceProvider {
         sellerRating: 4.7,
         isVerified: true,
         condition: specs.condition,
+        feedType: 'DEVELOPMENT_FEED',
         lastUpdated: new Date().toISOString(),
       },
     };

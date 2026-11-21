@@ -178,6 +178,7 @@ export class CromaProvider implements MarketplaceProvider {
         sellerRating: 4.8,
         isVerified: true,
         condition: specs.condition,
+        feedType: 'DEVELOPMENT_FEED',
         lastUpdated: new Date().toISOString(),
       },
     };

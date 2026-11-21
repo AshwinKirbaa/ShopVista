@@ -247,6 +247,12 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
     }
 
     // Signature verified! Atomically update payment, order status, and history
+    const gatewayEnv = isMock
+      ? 'SANDBOX_SIMULATOR'
+      : config.razorpay.keyId.startsWith('rzp_test_')
+      ? 'RAZORPAY_TEST_MODE'
+      : 'RAZORPAY_PRODUCTION';
+
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
@@ -254,6 +260,8 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
           status: 'PAID',
           razorpayPaymentId: razorpay_payment_id,
           razorpaySignature: razorpay_signature,
+          isSimulated: isMock,
+          gatewayEnvironment: gatewayEnv,
           paidAt: new Date(),
         },
       });
@@ -267,8 +275,10 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
         data: {
           orderId,
           status: 'CONFIRMED',
-          note: `Payment verified via Razorpay (Payment ID: ${razorpay_payment_id})`,
-          changedBy: 'System / Razorpay',
+          note: isMock
+            ? `Payment verified via Local Sandbox Simulator (Ref: ${razorpay_payment_id})`
+            : `Payment verified via Razorpay Official Gateway (ID: ${razorpay_payment_id})`,
+          changedBy: isMock ? 'ShopVista Test Simulator' : 'System / Razorpay',
         },
       });
     });

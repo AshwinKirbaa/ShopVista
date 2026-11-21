@@ -55,6 +55,59 @@ describe('ProductMatchingEngine', () => {
     expect(keyAmz).toBe(keyFlp);
     expect(keyAmz).toBe(keyCroma);
   });
+
+  it('verifies exact product matches share identical canonical group key', () => {
+    const spec1 = ProductMatchingEngine.extractSpecs('Sony WH-1000XM5 Wireless Noise Canceling Headphones - Black');
+    const spec2 = ProductMatchingEngine.extractSpecs('Sony WH-1000XM5 Bluetooth Headset with Active Noise Cancellation (Black)');
+    expect(ProductMatchingEngine.isComparable(spec1, spec2)).toBe(true);
+    expect(ProductMatchingEngine.calculateConfidence(spec1, spec2)).toBeGreaterThanOrEqual(0.85);
+  });
+
+  it('rejects comparison between different storage capacities (128GB vs 256GB vs 512GB)', () => {
+    const spec128 = ProductMatchingEngine.extractSpecs('Apple iPhone 16 Pro (128 GB) - Black Titanium');
+    const spec256 = ProductMatchingEngine.extractSpecs('Apple iPhone 16 Pro (256 GB) - Black Titanium');
+    const spec512 = ProductMatchingEngine.extractSpecs('Apple iPhone 16 Pro (512 GB) - Black Titanium');
+
+    expect(ProductMatchingEngine.isComparable(spec128, spec256)).toBe(false);
+    expect(ProductMatchingEngine.isComparable(spec256, spec512)).toBe(false);
+    expect(ProductMatchingEngine.isComparable(spec128, spec512)).toBe(false);
+  });
+
+  it('rejects comparison between different model tiers (iPhone 17 vs iPhone 17 Pro vs iPhone 17 Pro Max)', () => {
+    const base = ProductMatchingEngine.extractSpecs('Apple iPhone 17 (256 GB) - Blue');
+    const pro = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro (256 GB) - Natural Titanium');
+    const proMax = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro Max (256 GB) - Desert Titanium');
+
+    expect(ProductMatchingEngine.isComparable(base, pro)).toBe(false);
+    expect(ProductMatchingEngine.isComparable(pro, proMax)).toBe(false);
+    expect(ProductMatchingEngine.isComparable(base, proMax)).toBe(false);
+  });
+
+  it('isolates Refurbished products from Brand New units', () => {
+    const newUnit = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro (256 GB) - Brand New');
+    const refurbUnit = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro (256 GB) - Refurbished Superb Condition');
+
+    expect(newUnit.condition).toBe('NEW');
+    expect(refurbUnit.condition).toBe('REFURBISHED');
+    expect(ProductMatchingEngine.isComparable(newUnit, refurbUnit)).toBe(false);
+    expect(ProductMatchingEngine.generateGroupKey(newUnit)).not.toBe(ProductMatchingEngine.generateGroupKey(refurbUnit));
+  });
+
+  it('handles missing product identifiers safely without cross-variant contamination', () => {
+    const specWithStorage = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro (256 GB)');
+    const specWithoutStorage = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro Smartphone');
+
+    // Missing storage should NOT be assumed identical to 256GB
+    expect(ProductMatchingEngine.isComparable(specWithStorage, specWithoutStorage)).toBe(false);
+  });
+
+  it('prevents similar but unrelated accessories from matching main hardware', () => {
+    const accessory = ProductMatchingEngine.extractSpecs('Silicone Case for iPhone 17 Pro Max (Black)');
+    const phone = ProductMatchingEngine.extractSpecs('Apple iPhone 17 Pro Max (256 GB) - Black Titanium');
+
+    expect(accessory.model).not.toBe(phone.model);
+    expect(ProductMatchingEngine.isComparable(accessory, phone)).toBe(false);
+  });
 });
 
 describe('PriceComparisonEngine', () => {

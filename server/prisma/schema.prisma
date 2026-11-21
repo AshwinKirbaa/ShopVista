@@ -220,6 +220,8 @@ model Payment {
   razorpayPaymentId   String?       @unique
   razorpaySignature   String?
   failureReason       String?
+  isSimulated         Boolean       @default(false)
+  gatewayEnvironment  String        @default("TEST")
   paidAt              DateTime?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)

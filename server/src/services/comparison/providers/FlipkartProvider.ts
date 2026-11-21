@@ -207,6 +207,7 @@ export class FlipkartProvider implements MarketplaceProvider {
         couponDetails: item.coupon,
         isVerified: true,
         condition: specs.condition,
+        feedType: this.isConfigured() ? 'LIVE_API' : 'DEVELOPMENT_FEED',
         lastUpdated: new Date().toISOString(),
       },
     };

@@ -83,7 +83,12 @@ export class ProductMatchingEngine {
    * Specific model extractor with strict tier separation (e.g. Pro Max != Pro != Base)
    */
   static extractModel(title: string, brand: string): string {
-    const clean = title.toLowerCase();
+    const isAccessory = /\b(case|cover|protector|tempered|skin|strap|band|cable|adapter|charger|pouch|sleeve|stand|mount)\b/i.test(title);
+    if (isAccessory) {
+      return `${brand} Accessory`;
+    }
+
+    const clean = this.cleanText(title);
 
     // Apple iPhone models
     if (brand === 'Apple' || clean.includes('iphone')) {

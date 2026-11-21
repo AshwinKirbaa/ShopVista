@@ -101,6 +101,7 @@ export class ShopVistaProvider implements MarketplaceProvider {
           couponDetails: 'Use code FIRST10 for ₹500 off',
           isVerified: true,
           condition: specs.condition,
+          feedType: 'INTERNAL_DATABASE',
           lastUpdated: p.updatedAt.toISOString(),
         },
       };
@@ -154,6 +155,7 @@ export class ShopVistaProvider implements MarketplaceProvider {
         couponDetails: 'Use code FIRST10 for ₹500 off',
         isVerified: true,
         condition: specs.condition,
+        feedType: 'INTERNAL_DATABASE',
         lastUpdated: p.updatedAt.toISOString(),
       },
     };

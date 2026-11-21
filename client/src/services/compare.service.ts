@@ -21,6 +21,7 @@ export interface NormalizedOffer {
   couponDetails?: string;
   isVerified: boolean;
   condition: 'NEW' | 'REFURBISHED' | 'OPEN_BOX';
+  feedType: 'LIVE_API' | 'DEVELOPMENT_FEED' | 'INTERNAL_DATABASE';
   isLowestPrice?: boolean;
   lastUpdated: string;
 }

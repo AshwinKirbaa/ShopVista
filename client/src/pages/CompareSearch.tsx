@@ -406,6 +406,21 @@ export const CompareSearch: React.FC = () => {
                                 <span className="text-sm font-bold font-syne text-white">
                                   {offer.marketplaceName}
                                 </span>
+                                {offer.feedType === 'LIVE_API' && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                    Live API
+                                  </span>
+                                )}
+                                {offer.feedType === 'INTERNAL_DATABASE' && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                    Live Store
+                                  </span>
+                                )}
+                                {offer.feedType === 'DEVELOPMENT_FEED' && (
+                                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                                    Dev Feed
+                                  </span>
+                                )}
                                 {isLowest && (
                                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-black">
                                     Lowest Price
