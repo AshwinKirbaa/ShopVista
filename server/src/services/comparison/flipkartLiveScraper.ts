@@ -120,7 +120,7 @@ export function parseFlipkartLiveHtml(html: string): ScrapedFlipkartItem[] {
       });
     }
 
-    if (items.length >= 8) break;
+    if (items.length >= 35) break;
   }
 
   return items;
