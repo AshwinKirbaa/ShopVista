@@ -45,7 +45,7 @@ export const searchCompare = async (req: Request, res: Response) => {
 
 export const getGroupDetails = async (req: Request, res: Response) => {
   try {
-    const { groupKey } = req.params;
+    const groupKey = req.params.groupKey as string;
     const group = await compareEngine.getGroupByGroupKey(groupKey);
 
     if (!group) {
@@ -61,7 +61,7 @@ export const getGroupDetails = async (req: Request, res: Response) => {
 
 export const getPriceHistory = async (req: Request, res: Response) => {
   try {
-    const { groupKey } = req.params;
+    const groupKey = req.params.groupKey as string;
     const data = await compareEngine.getPriceHistory(groupKey);
     return sendSuccess(res, data, 'Price history and statistics retrieved');
   } catch (error: any) {
@@ -122,7 +122,7 @@ export const getUserPriceAlerts = async (req: AuthRequest, res: Response) => {
 export const deletePriceAlert = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) return sendError(res, 'Unauthorized', 401);
-    const { id } = req.params;
+    const id = req.params.id as string;
     await PriceAlertService.deleteAlert(id, req.user.id);
     return sendSuccess(res, { deleted: true }, 'Price alert removed');
   } catch (error: any) {
