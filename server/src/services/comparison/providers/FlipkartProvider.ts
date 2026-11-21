@@ -3,6 +3,7 @@ import { MarketplaceProvider } from '../MarketplaceProvider';
 import { NormalizedProduct, ProviderHealth } from '../types';
 import { ProductMatchingEngine } from '../ProductMatchingEngine';
 import { DEV_BENCHMARK_CATALOG, matchCatalogQuery, DevCatalogItem } from '../devCatalog';
+import { fetchFlipkartLive, parseFlipkartLiveHtml, ScrapedFlipkartItem } from '../flipkartLiveScraper';
 
 export class FlipkartProvider implements MarketplaceProvider {
   name = 'Flipkart';
@@ -45,17 +46,72 @@ export class FlipkartProvider implements MarketplaceProvider {
       }
     }
 
-    // 2. In production, unconfigured external provider must return empty results
+    // 2. Try Live Flipkart Web Scraper extraction for genuine live listings
+    try {
+      const liveHtml = await fetchFlipkartLive(query);
+      const liveScraped = parseFlipkartLiveHtml(liveHtml);
+      if (liveScraped && liveScraped.length > 0) {
+        return liveScraped.map((item) => this.normalizeScrapedItem(item));
+      }
+    } catch (scrapeErr: any) {
+      console.warn('[FlipkartProvider] Live extraction error, using fallback:', scrapeErr.message);
+    }
+
+    // 3. In production, unconfigured external provider must return empty results
     if (isProduction) {
       return [];
     }
 
-    // 3. In development / demo mode: comprehensive benchmark catalog with transparent Dev Feed label
+    // 4. In development / demo mode fallback: comprehensive benchmark catalog
     const matchedItems = DEV_BENCHMARK_CATALOG.filter(
       (item) => item.offers.flipkart && matchCatalogQuery(item, query)
     );
 
     return matchedItems.map((item) => this.normalizeDevItem(item));
+  }
+
+  private normalizeScrapedItem(item: ScrapedFlipkartItem): NormalizedProduct {
+    const specs = ProductMatchingEngine.extractSpecs(item.title, 'NEW');
+    const groupKey = ProductMatchingEngine.generateGroupKey(specs);
+
+    return {
+      externalId: `${item.id}-flip`,
+      marketplaceSlug: this.slug,
+      marketplaceName: this.name,
+      marketplaceLogo: this.logoUrl,
+      isInternal: false,
+      title: item.title,
+      brand: specs.brand,
+      model: specs.model,
+      category: 'Electronics',
+      specs,
+      groupKey,
+      imageUrl: item.imageUrl,
+      url: item.url,
+      offer: {
+        id: `${item.id}-flip-offer`,
+        marketplaceSlug: this.slug,
+        marketplaceName: this.name,
+        marketplaceLogo: this.logoUrl,
+        isInternal: false,
+        productTitle: item.title,
+        productUrl: item.url,
+        mrp: item.mrp,
+        sellingPrice: item.sellingPrice,
+        shippingCharge: 0,
+        finalPrice: item.sellingPrice,
+        currency: 'INR',
+        inStock: item.inStock,
+        deliveryTime: 'Delivery in 2-3 Days',
+        sellerName: 'Flipkart Assured Seller',
+        sellerRating: item.rating || 4.5,
+        couponDetails: item.mrp > item.sellingPrice ? `Save ₹${(item.mrp - item.sellingPrice).toLocaleString('en-IN')}` : undefined,
+        isVerified: true,
+        condition: 'NEW',
+        feedType: 'LIVE_API',
+        lastUpdated: new Date().toISOString(),
+      },
+    };
   }
 
   async getProductDetails(externalId: string): Promise<NormalizedProduct | null> {
