@@ -21,6 +21,7 @@ export const getProducts = async (req: Request, res: Response) => {
     const {
       search,
       categoryId,
+      category,
       minPrice,
       maxPrice,
       sort = 'newest',
@@ -32,10 +33,11 @@ export const getProducts = async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);
 
-    // Normalize categoryId filter: accept either UUID or slug (e.g. 'audio-studio-sound')
+    // Normalize category parameter: accept categoryId or category, and match by UUID or slug
+    const targetCategory = categoryId || category;
     let resolvedCategoryId: string | undefined = undefined;
-    if (categoryId) {
-      const catStr = String(categoryId).trim();
+    if (targetCategory) {
+      const catStr = String(targetCategory).trim();
       const matchedCat = await prisma.category.findFirst({
         where: {
           OR: [{ id: catStr }, { slug: catStr }],

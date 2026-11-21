@@ -18,6 +18,7 @@ export const updateProductSchema = createProductSchema.partial();
 export const productQuerySchema = z.object({
   search: z.string().optional(),
   categoryId: z.string().optional(),
+  category: z.string().optional(),
   minPrice: z.coerce.number().optional(),
   maxPrice: z.coerce.number().optional(),
   sort: z.enum(['newest', 'price_asc', 'price_desc', 'popular', 'rating']).optional().default('newest'),
