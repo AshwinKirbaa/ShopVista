@@ -180,7 +180,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
       ]);
     }
 
-    return sendSuccess(res, null, `Order status updated to ${status}`);
+    return sendSuccess(res, { id, status }, `Order status updated to ${status}`);
   } catch (error: any) {
     console.error('updateOrderStatus error:', error);
     return sendError(res, 'Failed to update order status', 500);
